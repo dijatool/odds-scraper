@@ -76,6 +76,7 @@ def teamNames( tag, offset ) :
 		eg: Bears @ Browns
 	'''
 	newOffset = offset + 1
+
 	classId = 'odds-row odds-row-odd odds-row-%s-1' % newOffset
 	namesWrapper = tag.findChild( None, { "class" : classId } )
 	namesObj = namesWrapper.findChild( None, { "class" : "game-left" } )
@@ -95,6 +96,7 @@ def dateAndTime( tag, offset ) :
 		eg: Aug 30 7:00 PM (in two separate items)
 	'''
 	newOffset = offset + 1
+
 	classId = 'odds-row odds-row-even odds-row-%s-2' % newOffset
 	dtWrapper = tag.findChild( None, { "class" : classId } )
 	dtObj = dtWrapper.findChild( None, { "class" : "game-left" } )
@@ -117,6 +119,7 @@ def theOdds( tag, offset ) :
 		They're stuff inside "book book-odd book-1" at text items 0 and 2 (of 0-3)
 	'''
 	newOffset = offset + 1
+
 	classId = 'odds-row odds-row-even odds-row-%s-2' % newOffset
 	wrapper = tag.findChild( None, { "class" : classId } )
 	odds = wrapper.findChild( None, { "class" : "book book-odd book-1" } )
@@ -128,12 +131,11 @@ def theOdds( tag, offset ) :
 
 def download() :
 	'''
-		download needs a description...
-
+		Pull the page and parse it into the pieces we need.
 	'''
+	oddsStr = "(%s)"
 	url = "http://www.oddsshark.com/nfl/odds"
 	opener = urllib2.build_opener()
-	# opener.addheaders = [("User-agent" , "Mozilla/5.0")]
 	link = opener.open( url )
 	page = link.read()
 	soup = bs( page )
@@ -142,11 +144,9 @@ def download() :
 	oddsRows = oddsContainer.findAll( None, { "class" : "oddsshark-odds-table allodds-odds" })
 	for i, game in enumerate( oddsRows ) :
 		visitor, home = teamNames( game, i )
-		print visitor, "@",  home
 		date, time = dateAndTime( game, i )
-		print date, time
 		awayOdds, homeOdds = theOdds( game, i )
-		print awayOdds, homeOdds
+		print date, time, visitor, oddsStr % awayOdds, "@",  home, oddsStr % homeOdds
 
 
 if __name__ == '__main__':
