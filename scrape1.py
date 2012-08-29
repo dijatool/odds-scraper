@@ -3,6 +3,7 @@
 import urllib2
 import os
 import sys
+import string
 
 from BeautifulSoup import BeautifulSoup as bs
 
@@ -41,11 +42,10 @@ _teamNames = {	'Buffalo' :			'Bills',
 		}
 
 
-
 # def leaf( tag ):
 # 	'''
 # 		get text inside <tag><tag>... text
-# 			<td>	<div><font size="2"><i><font color="#FFFFFF"> 
+# 			<td>	<div><font size="2"><i><font color="#FFFFFF">
 # 			+ + + + +</font></i></font></div></td>
 # 		<td height="10"><font size="2"> Bierfeuerwerk <strong></strong> </font></td>
 # 	'''
@@ -54,13 +54,13 @@ _teamNames = {	'Buffalo' :			'Bills',
 # 		text = text.strip()
 # 		if text :
 # 			leafText = text
-# 
+#
 # 	return leafText
 
 def teamNameTranslate( teamCity ) :
 	'''
 		Translate from the city name to the moniker used by the team
-		
+
 		If all else fails, fall back to the city data
 	'''
 	return _teamNames.get( teamCity, teamCity )
@@ -69,7 +69,7 @@ def teamNameTranslate( teamCity ) :
 def teamNames( tag, offset ) :
 	'''
 		Get the teamNames tuple
-		
+
 		It's stuffed inside "odds-row odds-row-odd odds-row-n-1" where n is a game offset
 		and then "game-left"
 
@@ -88,20 +88,42 @@ def teamNames( tag, offset ) :
 def dateAndTime( tag, offset ) :
 	'''
 		Get the date and time tuple
-		
+
 		It's stuffed inside "odds-row odds-row-even odds-row-n-2" where n is a game offset
 		and then "game-left"
 
-		eg: Bears @ Browns
+		eg: Aug 30 7:00 PM (in two separate items)
 	'''
 	newOffset = offset + 1
 	classId = 'odds-row odds-row-even odds-row-%s-2' % newOffset
-	namesWrapper = tag.findChild( None, { "class" : classId } )
-	namesObj = namesWrapper.findChild( None, { "class" : "game-left" } )
-	( date, time ) = namesObj.findAll( text=True )
+	dtWrapper = tag.findChild( None, { "class" : classId } )
+	dtObj = dtWrapper.findChild( None, { "class" : "game-left" } )
+	( date, time ) = dtObj.findAll( text=True )
 	return date, time
 
 
+def fixOdds( oddsStr ) :
+	'''
+		Replace instances of "&frac12;" with ".5" and trim any excess
+	'''
+	odds = string.replace( oddsStr, u'&frac12;', ".5" )
+	return odds.strip()
+
+
+def theOdds( tag, offset ) :
+	'''
+		Get the away and home odds
+
+		They're stuff inside "book book-odd book-1" at text items 0 and 2 (of 0-3)
+	'''
+	newOffset = offset + 1
+	classId = 'odds-row odds-row-even odds-row-%s-2' % newOffset
+	wrapper = tag.findChild( None, { "class" : classId } )
+	odds = wrapper.findChild( None, { "class" : "book book-odd book-1" } )
+	( awayOdds, weDontCare, homeOdds ) = odds.findAll( text=True, limit=3 )
+	awayOdds = fixOdds( awayOdds )
+	homeOdds = fixOdds( homeOdds )
+	return awayOdds, homeOdds
 
 
 def download() :
@@ -123,6 +145,8 @@ def download() :
 		print visitor, "@",  home
 		date, time = dateAndTime( game, i )
 		print date, time
+		awayOdds, homeOdds = theOdds( game, i )
+		print awayOdds, homeOdds
 
 
 if __name__ == '__main__':
