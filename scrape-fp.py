@@ -72,7 +72,7 @@ def doThreadComments( soup ) :
 		print " =============================="
 
 
-def doArticle( soup ) :
+def doArticle( url, soup ) :
 	'''
 		Extract the article information
 
@@ -118,7 +118,7 @@ def doArticle( soup ) :
 			doArticleComments( soup )
 
 
-def doThread( soup ) :
+def doThread( url, soup ) :
 	'''
 		Extract all the comments in a thread and handle additional pages.
 
@@ -170,15 +170,28 @@ def download( url ) :
 	soup = loadPage( url )
 
 	if not urlFragment in url :
-		doArticle( soup )
+		doArticle( url, soup )
 	else :
-		doThread( soup )
+		doThread( url, soup )
+
+
+
+
+def main() :
+	'''
+		Make sure we have a url and then go do something useful
+	
+	'''
+	if len( sys.argv ) < 2 :
+		import os
+
+		appName = os.path.basename( sys.argv[ 0 ] )
+		print "\tUsage:", appName, "url to scrape"
+	else :
+		url = sys.argv[ 1 ]
+		download( url )
 
 
 if __name__ == '__main__':
-	# url = "http://footballpros.com/content.php/1807-For-Whom-the-Bell-Tolls-Final-Roster-Cutdown-Day"
-	# url = "http://footballpros.com/showthread.php/11659-Bryant-McKinnie-Cut"
-	url = "http://footballpros.com/showthread.php/11662-Survivor-Pool-FP-2012"
-
-	download( url )
+	main()
 
