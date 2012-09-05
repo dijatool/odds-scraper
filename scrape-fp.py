@@ -19,37 +19,7 @@ def cleanMsg( obj ) :
 	return ''.join( bs( str( obj )).findAll( text=True )).strip()
 
 
-def doArticle( soup ) :
-	'''
-		Extract the article information
-
-	'''
-	articleTitle = soup.findChild( None, { "class" : "article_width" }).findChild( None, { "class" : "title" })
-	print cleanMsg( articleTitle )
-
-	# the poster lives in a changing environment
-	# just find a class with username inside the other elements
-	articlePosterObj = soup.findChild( None, { "class" : "article_username_container_full" }).findChild( None, { "class" : "popupmenu memberaction" })
-	poster = articlePosterObj.findChild( None, { "class" : re.compile( 'username' ) } )
-	print cleanMsg( poster )
-
-	articleDateObj = soup.findChild( None, { "class" : " article_username_container " })
-	print cleanMsg( articleDateObj )
-	print
-
-	articleContentObj = soup.findChild( None, { "class" : "article cms_clear restore postcontainer" })
-	articleMsg = cleanMsg( articleContentObj )
-	print articleMsg
-	print " =============================="
-	print " =============================="
-
-	# debug ... need a better cleaning mechanism for the main article
-	# lists are causing all the issues!!
-	# 	print articleContentObj
-	# 	print " =========="
-
-
-def doComments( soup ) :
+def doArticleComments( soup ) :
 	'''
 		Gather all the data from a page of comments...
 
@@ -70,9 +40,108 @@ def doComments( soup ) :
  		# brute force strip all HTML data from message for now
 		msgObj = commentRow.findChild( None, { "class" : "posttext restore" })
 		msg = ''.join( bs( str( msgObj ) ).findAll( text=True )).strip()
-		print msg
+		print msg.encode( 'ascii', 'ignore' )
 
 		print " =============================="
+
+
+def doThreadComments( soup ) :
+	'''
+		doThreadComments needs a description...
+
+	'''
+	commentBlock = soup.findChild( None, { "class" : "posts" })
+	commentRows = commentBlock.findAll( None, { "class" : "postbit postbitim postcontainer old" })
+	for i, commentRow in enumerate( commentRows ) :
+		# print commentRow
+		userObj = commentRow.findChild( None, { "class" : "popupmenu memberaction" })
+		poster = userObj.findChild( None, { "class" : re.compile( 'username' ) } )
+		poster = cleanMsg( poster )
+
+		date = cleanMsg( commentRow.findChild( None, { "class" : "date" }))
+		date = date.replace( "&nbsp;", " " )
+
+		print poster, date
+		print
+
+		# brute force strip all HTML data from message for now
+		msgObj = commentRow.findChild( None, { "class" : "postcontent restore" })
+		msg = ''.join( bs( str( msgObj ) ).findAll( text=True )).strip()
+		print msg.encode( 'ascii', 'ignore' )
+
+		print " =============================="
+
+
+def doArticle( soup ) :
+	'''
+		Extract the article information
+
+	'''
+	articleTitle = soup.findChild( None, { "class" : "article_width" }).findChild( None, { "class" : "title" })
+	print cleanMsg( articleTitle )
+
+	# the poster lives in a changing environment
+	# just find a class with username inside the other elements
+	articlePosterObj = soup.findChild( None, { "class" : "article_username_container_full" }).findChild( None, { "class" : "popupmenu memberaction" })
+	poster = articlePosterObj.findChild( None, { "class" : re.compile( 'username' ) } )
+	print cleanMsg( poster )
+
+	articleDateObj = soup.findChild( None, { "class" : " article_username_container " })
+	print cleanMsg( articleDateObj )
+	print
+
+	articleContentObj = soup.findChild( None, { "class" : "article cms_clear restore postcontainer" })
+	articleMsg = cleanMsg( articleContentObj )
+	print articleMsg.encode('ascii', 'ignore')
+	print " =============================="
+	print " =============================="
+
+	# debug ... need a better cleaning mechanism for the main article
+	# lists are causing all the issues!!
+	# 	print articleContentObj
+	# 	print " =========="
+
+	# how many pages?
+	pageInfo = soup.findChild( None, { "class" : "comments_page_nav_css" }).findChild( None, { "class" : "popupctrl" })
+	pageText = cleanMsg( pageInfo )
+	pageInfo = re.findall( r'\b\d+\b', pageText )
+	pageCount = int( pageInfo[1] )
+
+	doArticleComments( soup )
+
+	if pageCount > 1 :
+		thisPage = 1
+		while thisPage < pageCount :
+			thisPage += 1
+			newUrl = "%s?page=%s" % ( url, thisPage )
+			soup = loadPage( newUrl )
+			doArticleComments( soup )
+
+
+def doThread( soup ) :
+	'''
+		Extract all the comments in a thread and handle additional pages.
+
+	'''
+	titleObj = soup.findChild( None, { "class" : "threadtitle" })
+	print cleanMsg( titleObj )
+
+	pageInfo = soup.findChild( None, { "class" : "pagination_top" }).findChild( None, { "class" : "popupctrl" })
+	pageText = cleanMsg( pageInfo )
+	pageInfo = re.findall( r'\b\d+\b', pageText )
+	pageCount = int( pageInfo[1] )
+	#print pageCount
+
+	print
+	doThreadComments( soup )
+
+	if pageCount > 1 :
+		thisPage = 1
+		while thisPage < pageCount :
+			thisPage += 1
+			newUrl = "%s?page=%s" % ( url, thisPage )
+			soup = loadPage( newUrl )
+			doThreadComments( soup )
 
 
 def loadPage( url ) :
@@ -96,35 +165,20 @@ def download( url ) :
 	'''
 		Pull the page and parse it into the pieces we need.
 	'''
+
+	urlFragment = "showthread.php"
 	soup = loadPage( url )
 
-	doArticle( soup )
-
-	# how many pages?
-	pageInfo = soup.findChild( None, { "class" : "comments_page_nav_css" }).findChild( None, { "class" : "popupctrl" })
-	pageText = cleanMsg( pageInfo )
-	pageInfo = re.findall( r'\b\d+\b', pageText )
-	pageCount = int( pageInfo[1] )
-
-	doComments( soup )
-
-	if pageCount > 1 :
-		thisPage = 1
-		while thisPage < pageCount :
-			thisPage += 1
-			newUrl = "%s?page=%s" % ( url, thisPage )
-			soup = loadPage( newUrl )
-			doComments( soup )
+	if not urlFragment in url :
+		doArticle( soup )
+	else :
+		doThread( soup )
 
 
 if __name__ == '__main__':
-# 	url = "http://footballpros.com/content.php/1797-FP-Upset-Special-Challenge-Our-Scrubs-Are-Better-Than-Your-Scrubs-Edition-PS-Week-4"
-#
-# a longer test url
-# http://footballpros.com/showthread.php/10011-Article-FootballPros-com-Upset-Special-Challenge-Week-13
-# http://footballpros.com/content.php/1203-FootballPros.com-Upset-Special-Challenge-Week-13
-#
-	url = "http://footballpros.com/content.php/1203-FootballPros.com-Upset-Special-Challenge-Week-13"
-	download( url )
+	# url = "http://footballpros.com/content.php/1807-For-Whom-the-Bell-Tolls-Final-Roster-Cutdown-Day"
+	# url = "http://footballpros.com/showthread.php/11659-Bryant-McKinnie-Cut"
+	url = "http://footballpros.com/showthread.php/11662-Survivor-Pool-FP-2012"
 
+	download( url )
 
