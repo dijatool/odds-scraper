@@ -129,7 +129,7 @@ def theOdds( tag, offset ) :
 	return awayOdds, homeOdds
 
 
-def download() :
+def main() :
 	'''
 		Pull the page and parse it into the pieces we need.
 	'''
@@ -143,13 +143,18 @@ def download() :
 	oddsContainer = soup.findChild( None, { "class" : "odds-tables-container" })
 	oddsRows = oddsContainer.findAll( None, { "class" : "oddsshark-odds-table allodds-odds" })
 	for i, game in enumerate( oddsRows ) :
-		visitor, home = teamNames( game, i )
-		date, time = dateAndTime( game, i )
-		awayOdds, homeOdds = theOdds( game, i )
-		print date, time, visitor, oddsStr % awayOdds, "@",  home, oddsStr % homeOdds
+		try :
+			visitor, home = teamNames( game, i )
+			date, time = dateAndTime( game, i )
+			awayOdds, homeOdds = theOdds( game, i )
+			print date, time, visitor, oddsStr % awayOdds, "@",  home, oddsStr % homeOdds
+		# if unpacking something causes an error because of empty data just eat
+		# the error and move on
+		except ValueError :
+			pass
 
 
 if __name__ == '__main__':
-	download()
+	main()
 
 
