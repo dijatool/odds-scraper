@@ -1,43 +1,72 @@
+#!/usr/bin/env python
+
+import urllib2
+import os
+import sys
+import string
+import re
+from BeautifulSoup import BeautifulSoup as bs
+
+# Run like so...
+#
+#	~/github/local/odds-scraper/roster-scraper.py > /tmp/packers-roster-plain.txt
+#	md5 /tmp/packers-roster-plain.txt
+#
 
 
-_docs = """
-
-Need a scraper for this page so I know if something changed
-
-http://www.packers.com/team/players.html
-
-classes:
-	game-roster mod-tabular
-		game-roster-large
-			bd
+def cleanMsg( obj ) :
+	'''
+		Take the object and strip everything to make it clean text
+	'''
+	return ''.join( bs( str( obj )).findAll( text=True )).strip()
 
 
-mod-title-nobackground
-	these are the segments...
-then
-table
-	tbody
-		tr class=loop-*
+def loadPage( url ) :
+	'''
+		Given a url returns a soup object
 
-<tr class="loop-first  loop-odd">
-        <td class="col-jersey" rel="67">
-            67
-        </td>
-        <td class="col-name">
-            
-                
-                
-                    
-                
-            
-            <a href="/team/roster/Don-Barclay/4c69f318-aedc-4830-8c13-0c5e9810e5cc" rel="/cda-web/person-card-module.htm?mode=data&amp;id=4c69f318-aedc-4830-8c13-0c5e9810e5cc" rev="Player" class="player-card-tooltip" title="Barclay, Don" onclick="s_objectID=&quot;http://www.packers.com/team/roster/Don-Barclay/4c69f318-aedc-4830-8c13-0c5e9810e5cc_1&quot;;return this.s_oc?this.s_oc(e):true"><span>Barclay, Don</span></a>
-        </td>
-        <td class="col-position">G/T</td>
-        <td class="col-height">6-4</td>
-        <td class="col-weight">305</td><td class="col-bd">23</td><td class="col-exp" rel="00">
-            R
-        </td>
-        <td class="col-college">West Virginia</td>
-    </tr>
-"""
+	'''
+	opener = urllib2.build_opener()
+	link = opener.open( url )
+	page = link.read()
+	soup = bs( page )
+
+	return soup
+
+
+def download( url ) :
+	'''
+		Pull the page and parse it into the pieces we need.
+	'''
+	loopRegEx = re.compile( ' loop-' )		# each row has the class tag ' loop-*'
+
+	soup = loadPage( url )
+	mainBodyObj = soup.findChild( None, { "class" : "game-roster-large" }).findChild( None, { "class" : "bd" })
+
+	# find the sections...
+	sections = mainBodyObj.findAll( None, { "class" : "mod-title-nobackground" })
+	for i, aSection in enumerate( sections ) :
+		print cleanMsg( aSection )
+		# now get at the table stuff just below each section...
+		aTable = aSection.findNextSibling( 'table' )
+		rows = aTable.findChildren( 'tr', { "class" : loopRegEx })
+		for aRow in rows :
+			# print aRow
+			name = aRow.findChild( 'td', { "class" : "col-name" })
+			number = aRow.findChild( 'td', { "class" : "col-jersey" })
+			print cleanMsg( number ), cleanMsg( name )
+		print
+
+
+def main() :
+	'''
+		Go do something useful.
+
+	'''
+	url = "http://www.packers.com/team/players.html"
+	download( url )
+
+
+if __name__ == '__main__':
+	main()
 
