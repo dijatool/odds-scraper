@@ -9,7 +9,7 @@ from BeautifulSoup import BeautifulSoup as bs
 
 # Run like so...
 #
-#	~/github/local/odds-scraper/roster-scraper.py > /tmp/packers-roster-plain.txt
+#	packers-roster.py > /tmp/packers-roster-plain.txt
 #	md5 /tmp/packers-roster-plain.txt
 #
 
