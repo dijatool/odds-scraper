@@ -105,7 +105,10 @@ def doArticle( url, soup ) :
 	pageInfo = soup.findChild( None, { "class" : "comments_page_nav_css" }).findChild( None, { "class" : "popupctrl" })
 	pageText = cleanMsg( pageInfo )
 	pageInfo = re.findall( r'\b\d+\b', pageText )
-	pageCount = int( pageInfo[1] )
+	try :
+		pageCount = int( pageInfo[1] )
+	except IndexError :
+		pageCount = 1
 
 	doArticleComments( soup )
 
@@ -129,8 +132,10 @@ def doThread( url, soup ) :
 	pageInfo = soup.findChild( None, { "class" : "pagination_top" }).findChild( None, { "class" : "popupctrl" })
 	pageText = cleanMsg( pageInfo )
 	pageInfo = re.findall( r'\b\d+\b', pageText )
-	pageCount = int( pageInfo[1] )
-	#print pageCount
+	try :
+		pageCount = int( pageInfo[1] )
+	except IndexError :
+		pageCount = 1
 
 	print
 	doThreadComments( soup )
