@@ -123,7 +123,12 @@ def theOdds( tag, offset ) :
 	classId = 'odds-row odds-row-even odds-row-%s-2' % newOffset
 	wrapper = tag.findChild( None, { "class" : classId } )
 	odds = wrapper.findChild( None, { "class" : "book book-odd book-1" } )
-	( awayOdds, weDontCare, homeOdds ) = odds.findAll( text=True, limit=3 )
+	
+	oddsArray = odds.findAll( text=True )
+	awayOdds = oddsArray[ 0 ]
+	# sometimes this is the wrong one, but the site is inconsistent
+	homeOdds = oddsArray[ 2 ]
+
 	awayOdds = fixOdds( awayOdds )
 	homeOdds = fixOdds( homeOdds )
 	return awayOdds, homeOdds
@@ -147,7 +152,17 @@ def main() :
 			visitor, home = teamNames( game, i )
 			date, time = dateAndTime( game, i )
 			awayOdds, homeOdds = theOdds( game, i )
-			print date, time, visitor, oddsStr % awayOdds, "@",  home, oddsStr % homeOdds
+			print date, time, visitor,
+			if awayOdds[ 0 ] != '-' :
+				print oddsStr % awayOdds,
+			print "@",
+			print home,
+			if homeOdds[ 0 ] != '-' :
+				print oddsStr % homeOdds
+			else :
+				# finish the line
+				print
+
 		# if unpacking something causes an error because of empty data just eat
 		# the error and move on
 		except ValueError :
