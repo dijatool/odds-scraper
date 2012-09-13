@@ -123,7 +123,7 @@ def theOdds( tag, offset ) :
 	classId = 'odds-row odds-row-even odds-row-%s-2' % newOffset
 	wrapper = tag.findChild( None, { "class" : classId } )
 	odds = wrapper.findChild( None, { "class" : "book book-odd book-1" } )
-	
+
 	oddsArray = odds.findAll( text=True )
 	awayOdds = oddsArray[ 0 ]
 	# sometimes this is the wrong one, but the site is inconsistent
@@ -166,6 +166,9 @@ def main() :
 		# if unpacking something causes an error because of empty data just eat
 		# the error and move on
 		except ValueError :
+			pass
+
+		except IndexError :
 			pass
 
 
