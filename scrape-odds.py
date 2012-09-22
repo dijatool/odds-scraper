@@ -4,6 +4,7 @@ import urllib2
 import os
 import sys
 import string
+import re
 
 from BeautifulSoup import BeautifulSoup as bs
 
@@ -42,21 +43,6 @@ _teamNames = {	'Buffalo' :			'Bills',
 		}
 
 
-# def leaf( tag ):
-# 	'''
-# 		get text inside <tag><tag>... text
-# 			<td>	<div><font size="2"><i><font color="#FFFFFF">
-# 			+ + + + +</font></i></font></div></td>
-# 		<td height="10"><font size="2"> Bierfeuerwerk <strong></strong> </font></td>
-# 	'''
-# 	leafText = ""
-# 	for text in tag.findAll( text=True ) :
-# 		text = text.strip()
-# 		if text :
-# 			leafText = text
-#
-# 	return leafText
-
 def teamNameTranslate( teamCity ) :
 	'''
 		Translate from the city name to the moniker used by the team
@@ -64,6 +50,16 @@ def teamNameTranslate( teamCity ) :
 		If all else fails, fall back to the city data
 	'''
 	return _teamNames.get( teamCity, teamCity )
+
+
+def teamsTranslate( awayTeam, homeTeam ) :
+	'''
+		teamsTranslate needs a description...
+
+	'''
+	visitor = teamNameTranslate( awayTeam )
+	home = teamNameTranslate( homeTeam )
+	return visitor, home
 
 
 def teamNames( tag, offset ) :
@@ -81,9 +77,7 @@ def teamNames( tag, offset ) :
 	namesWrapper = tag.findChild( None, { "class" : classId } )
 	namesObj = namesWrapper.findChild( None, { "class" : "game-left" } )
 	( visitor, home ) = namesObj.findAll( text=True )
-	visitor = teamNameTranslate( visitor )
-	home = teamNameTranslate( home )
-	return visitor, home
+	return teamsTranslate( visitor, home )
 
 
 def dateAndTime( tag, offset ) :
@@ -109,6 +103,7 @@ def fixOdds( oddsStr ) :
 		Replace instances of "&frac12;" with ".5" and trim any excess
 	'''
 	odds = string.replace( oddsStr, u'&frac12;', ".5" )
+	odds = string.replace( odds, u'&nbsp;', "ev" )
 	return odds.strip()
 
 
@@ -134,16 +129,79 @@ def theOdds( tag, offset ) :
 	return awayOdds, homeOdds
 
 
-def main() :
+def printOdds( date, time, visitor, home, awayOdds, homeOdds ) :
 	'''
-		Pull the page and parse it into the pieces we need.
+		print a full line of odds data...
+
 	'''
 	oddsStr = "(%s)"
-	url = "http://www.oddsshark.com/nfl/odds"
-	opener = urllib2.build_opener()
-	link = opener.open( url )
-	page = link.read()
-	soup = bs( page )
+
+	print date, time, visitor,
+	if awayOdds[ 0 ] != '-' :
+		print oddsStr % awayOdds,
+	print "@",
+	print home,
+	if homeOdds[ 0 ] != '-' :
+		print oddsStr % homeOdds
+	else :
+		# finish the line
+		print
+
+
+def currentOdds( soup ) :
+	'''
+		currentOdds needs a description...
+
+		gonna need a new approach to get at a different part of the page...
+
+		<div id="events-wrapper">
+			odd event-1 event-
+			even event-2 event-
+				upcoming-row
+					upcoming-row-cell-teams
+					upcoming-row-cell-line
+
+
+	'''
+	rowRegx = re.compile( "event-\d+ event-" )
+
+	oddsContainer = soup.findChild( None, { "id" : "events-wrapper" })
+	oddsRows = oddsContainer.findAll( None, { "class" : rowRegx })
+	for i, game in enumerate( oddsRows ) :
+		gameData = game.findChild( None, { "class" : "upcoming-row" })
+		( visitor, home ) = gameData.findChild( None, { "class" : "upcoming-row-cell-teams" }).findAll( text=True )
+		( visitor, home ) = teamsTranslate( visitor, home )
+
+		odds =  gameData.findChild( None, { "class" : "upcoming-row-cell-line" }).findAll( text=True )
+
+		# should probably factor this out and use it in the other case too
+		offset = 1
+		if odds[ 0 ] != "+" :
+			awayOdds = odds[ 0 ]
+		else :
+			awayOdds = "%s%s" % ( odds[ 0 ], odds[ 1 ] )
+			offset += 1
+
+		if odds[ offset ] != "+" :
+			homeOdds = odds[ offset ]
+		else :
+			homeOdds = "%s%s" % ( odds[ offset ], odds[ offset + 1 ] )
+			offset += 1
+
+		awayOdds = fixOdds( awayOdds )
+		homeOdds = fixOdds( homeOdds )
+		dateObj = game.findChild( None, { "class" : "upcoming-row-cell-date" })
+		( date, time ) = dateObj.findAll( text=True )
+		date = string.replace( date, '@', '' )
+
+		printOdds( date, time, visitor, home, awayOdds, homeOdds )
+
+
+def openingOdds( soup ) :
+	'''
+		openingOdds needs a description...
+
+	'''
 
 	oddsContainer = soup.findChild( None, { "class" : "odds-tables-container" })
 	oddsRows = oddsContainer.findAll( None, { "class" : "oddsshark-odds-table allodds-odds" })
@@ -152,16 +210,8 @@ def main() :
 			visitor, home = teamNames( game, i )
 			date, time = dateAndTime( game, i )
 			awayOdds, homeOdds = theOdds( game, i )
-			print date, time, visitor,
-			if awayOdds[ 0 ] != '-' :
-				print oddsStr % awayOdds,
-			print "@",
-			print home,
-			if homeOdds[ 0 ] != '-' :
-				print oddsStr % homeOdds
-			else :
-				# finish the line
-				print
+
+			printOdds( date, time, visitor, home, awayOdds, homeOdds )
 
 		# if unpacking something causes an error because of empty data just eat
 		# the error and move on
@@ -170,6 +220,23 @@ def main() :
 
 		except IndexError :
 			pass
+
+
+def main() :
+	'''
+		Pull the page and parse it into the pieces we need.
+	'''
+	url = "http://www.oddsshark.com/nfl/odds"
+	opener = urllib2.build_opener()
+	link = opener.open( url )
+	page = link.read()
+	soup = bs( page )
+
+	print "Opening odds..."
+	openingOdds( soup )
+
+	print; print "Current odds..."
+	currentOdds( soup )
 
 
 if __name__ == '__main__':
