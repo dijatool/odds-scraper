@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import urllib2
 import os
@@ -103,7 +104,8 @@ def fixOdds( oddsStr ) :
 		Replace instances of "&frac12;" with ".5" and trim any excess
 	'''
 	odds = string.replace( oddsStr, u'&frac12;', ".5" )
-	odds = string.replace( odds, u'&nbsp;', "ev" )
+	odds = string.replace( odds, u'½', ".5" )
+	odds = string.replace( odds, u'&nbsp;', "even" )
 	return odds.strip()
 
 
@@ -129,23 +131,22 @@ def theOdds( tag, offset ) :
 	return awayOdds, homeOdds
 
 
-def printOdds( date, time, visitor, home, awayOdds, homeOdds ) :
+def oddsLine( date, time, away, home, awayOdds, homeOdds ) :
 	'''
-		print a full line of odds data...
+		generate a full line of odds data...
 
 	'''
-	oddsStr = "(%s)"
+	oddsStr = " (%s)"
+	awayOddsStr = ""
+	homeOddsStr = ""
+	finalOddsStr ="%s %s %s%s @ %s%s"
 
-	print date, time, visitor,
 	if awayOdds[ 0 ] != '-' :
-		print oddsStr % awayOdds,
-	print "@",
-	print home,
+		awayOddsStr = oddsStr % awayOdds
 	if homeOdds[ 0 ] != '-' :
-		print oddsStr % homeOdds
-	else :
-		# finish the line
-		print
+		homeOddsStr = oddsStr % homeOdds
+
+	return finalOddsStr % ( date, time, away, awayOddsStr, home, homeOddsStr )
 
 
 def currentOdds( soup ) :
@@ -155,46 +156,69 @@ def currentOdds( soup ) :
 		gonna need a new approach to get at a different part of the page...
 
 		<div id="events-wrapper">
-			odd event-1 event-
-			even event-2 event-
+			odd event-1 event-show
+			even event-2 event-show
+			odd event-3 event-show
+			even event-14 event-hide
+			odd event-15 event-hide
+
 				upcoming-row
 					upcoming-row-cell-teams
 					upcoming-row-cell-line
 
+			The perfect regex doesn't work... it's driving me batty!!
+				((odd|even) event\-[\d]+ event\-(show|hide))
 
 	'''
-	rowRegx = re.compile( "event-\d+ event-" )
+	oddsList = []
 
 	oddsContainer = soup.findChild( None, { "id" : "events-wrapper" })
-	oddsRows = oddsContainer.findAll( None, { "class" : rowRegx })
+	# this is a shaky way to get what we want and yet it somehow works with bs4
+	# we'll do some error checking on the list just in case...
+	oddsRows = oddsContainer.findAll( None, { "class" : re.compile( "event\-\d+" ) })
 	for i, game in enumerate( oddsRows ) :
-		gameData = game.findChild( None, { "class" : "upcoming-row" })
-		( visitor, home ) = gameData.findChild( None, { "class" : "upcoming-row-cell-teams" }).findAll( text=True )
-		( visitor, home ) = teamsTranslate( visitor, home )
+		try :
+			theClass = game[ 'class' ]
+			if not isinstance( theClass, basestring ) :
+				theClass = ' '.join( theClass )
+			regEx = re.compile( "((odd|even) event\-[\d]+ event\-(show|hide))" )
 
-		odds =  gameData.findChild( None, { "class" : "upcoming-row-cell-line" }).findAll( text=True )
+			if regEx.match( theClass ) :
+				gameData = game.findChild( None, { "class" : "upcoming-row" })
+				( visitor, home ) = gameData.findChild( None, { "class" : "upcoming-row-cell-teams" }).findAll( text=True )
+				( visitor, home ) = teamsTranslate( visitor, home )
+				odds =  gameData.findChild( None, { "class" : "upcoming-row-cell-line" }).findAll( text=True )
 
-		# should probably factor this out and use it in the other case too
-		offset = 1
-		if odds[ 0 ] != "+" :
-			awayOdds = odds[ 0 ]
-		else :
-			awayOdds = "%s%s" % ( odds[ 0 ], odds[ 1 ] )
-			offset += 1
+				# should probably factor this out and use it in the other case too
+				# nope, different way of messing things up here
+				offset = 1
+				if odds[ 0 ] != "+" :
+					awayOdds = odds[ 0 ]
+				else :
+					awayOdds = "%s%s" % ( odds[ 0 ], odds[ 1 ] )
+					offset += 1
 
-		if odds[ offset ] != "+" :
-			homeOdds = odds[ offset ]
-		else :
-			homeOdds = "%s%s" % ( odds[ offset ], odds[ offset + 1 ] )
-			offset += 1
+				if odds[ offset ] != "+" :
+					homeOdds = odds[ offset ]
+				else :
+					homeOdds = "%s%s" % ( odds[ offset ], odds[ offset + 1 ] )
+					offset += 1
 
-		awayOdds = fixOdds( awayOdds )
-		homeOdds = fixOdds( homeOdds )
-		dateObj = game.findChild( None, { "class" : "upcoming-row-cell-date" })
-		( date, time ) = dateObj.findAll( text=True )
-		date = string.replace( date, '@', '' )
+				awayOdds = fixOdds( awayOdds )
+				homeOdds = fixOdds( homeOdds )
+				dateObj = game.findChild( None, { "class" : "upcoming-row-cell-date" })
+				( date, time ) = dateObj.findAll( text=True )
+				date = string.replace( date, '@', '' )
 
-		printOdds( date, time, visitor, home, awayOdds, homeOdds )
+				oddsList.append( oddsLine( date, time, visitor, home, awayOdds, homeOdds ) )
+
+		except ValueError :
+			pass
+
+		except IndexError :
+			pass
+
+	return oddsList
 
 
 def openingOdds( soup ) :
@@ -202,7 +226,7 @@ def openingOdds( soup ) :
 		openingOdds needs a description...
 
 	'''
-
+	oddsList = []
 	oddsContainer = soup.findChild( None, { "class" : "odds-tables-container" })
 	oddsRows = oddsContainer.findAll( None, { "class" : "oddsshark-odds-table allodds-odds" })
 	for i, game in enumerate( oddsRows ) :
@@ -211,7 +235,7 @@ def openingOdds( soup ) :
 			date, time = dateAndTime( game, i )
 			awayOdds, homeOdds = theOdds( game, i )
 
-			printOdds( date, time, visitor, home, awayOdds, homeOdds )
+			oddsList.append( oddsLine( date, time, visitor, home, awayOdds, homeOdds ) )
 
 		# if unpacking something causes an error because of empty data just eat
 		# the error and move on
@@ -221,22 +245,30 @@ def openingOdds( soup ) :
 		except IndexError :
 			pass
 
+	return oddsList
+
 
 def main() :
 	'''
 		Pull the page and parse it into the pieces we need.
 	'''
 	url = "http://www.oddsshark.com/nfl/odds"
+	#url = "file:///tmp/odds"
 	opener = urllib2.build_opener()
 	link = opener.open( url )
 	page = link.read()
 	soup = bs( page )
 
 	print "Opening odds..."
-	openingOdds( soup )
+	opening = openingOdds( soup )
+	#print oddsList
+	for odds in opening :
+		print odds
 
 	print; print "Current odds..."
-	currentOdds( soup )
+	current = currentOdds( soup )
+	for odds in current :
+		print odds
 
 
 if __name__ == '__main__':
