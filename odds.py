@@ -7,7 +7,11 @@ import sys
 import string
 import re
 
-from BeautifulSoup import BeautifulSoup as bs
+try :
+	from BeautifulSoup import BeautifulSoup as bs
+except :
+	from bs4 import BeautifulSoup as bs
+
 
 _teamNames = {	'Buffalo' :			'Bills',
 				'Miami' :			'Dolphins',
@@ -41,7 +45,42 @@ _teamNames = {	'Buffalo' :			'Bills',
 				'San Francisco' :	'49ers',
 				'St. Louis' :		'Rams',
 				'Arizona' :			'Cardinals',
-		}
+				}
+
+_teamLongitude = {	'Bills' :		-78.786944,
+					'Patriots' :	-71.264344,
+					'Jets' :		-74.074444,
+					'Dolphins' :	-80.238889,
+					'Bengals' :		-84.516039,
+					'Ravens' :		-76.622778,
+					'Steelers' :	-80.015833,
+					'Browns' :		-81.699444,
+					'Texans' :		-95.410833,
+					'Colts' :		-86.163806,
+					'Titans' :		-86.771389,
+					'Jaguars' :		-81.6375,
+					'Chargers' :	-117.119444,
+					'Broncos' :		-105.02,
+					'Chiefs' :		-94.483889,
+					'Raiders' :		-122.200556,
+					'Eagles' :		-75.1675,
+					'Redskins' :	-76.864444,
+					'Cowboys' :		-97.092778,
+					'Giants' :		-74.074444,
+					'Vikings' :		-93.258056,
+					'Packers' :		-88.062222,
+					'Bears' :		-87.616667,
+					'Lions' :		-83.045556,
+					'Falcons' :		-84.400833,
+					'Buccaneers' :	-82.503333,
+					'Panthers' :	-80.852778,
+					'Saints' :		-90.081111,
+					'Cardinals' :	-112.2625,
+					'49ers' :		-122.386111,
+					'Seahawks' :	-122.331667,
+					'Rams' :		-90.188611,
+					}
+
 
 # a strange list, but it works for football until they move to march
 _months = {	'mar' :	1,
@@ -75,7 +114,7 @@ class GameOdds( object ) :
 		self._date = date
 
 		( month, day ) = date.split( ' ' )
-		self._month = _months.get( month.lower(), 0 )
+		self._month = _months.get( month.lower()[ : 3 ], 0 )
 		self._day = int( day )
 
 		self._time = time
@@ -83,9 +122,18 @@ class GameOdds( object ) :
 		self._home = home
 		self._awayOdds = awayOdds
 		self._homeOdds = homeOdds
+		self._gameInfo = self.oddsLine()
 
 
 	def __repr__( self ) :
+		'''
+			Standard string representation
+
+		'''
+		return self.oddsLine()
+
+
+ 	def __unicode__( self ) :
 		'''
 			Standard string representation
 
@@ -139,7 +187,7 @@ def compareGames( game ) :
 		compareGames needs a description...
 
 	'''
-	return ''.join( ( str( game._month ), str( game._day ), game._time, game._home ))
+	return ''.join( ( str( game._month ), str( game._day ), game._time, str( _teamLongitude.get( game._home, 0 ))))
 
 
 def teamNameTranslate( teamCity ) :
