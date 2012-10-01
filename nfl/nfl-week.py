@@ -57,7 +57,7 @@ def loadPage( url ) :
 	return soup
 
 
-def parsePage( url ) :
+def parsePage( url, formatStr = None ) :
 	'''
 		Pull the page and parse it into the pieces we need.
 	'''
@@ -70,16 +70,18 @@ def parsePage( url ) :
 		try :
 			top = row.findChild( None, { 'class' : 'new-score-box-wrapper' })
 			date = getDate( top )
-	
+
 			away = top.findChild( None, { 'class' : 'away-team' })
 			awayName, awayScore = nameScore( away )
-	
+
 			home = top.findChild( None, { 'class' : 'home-team' })
 			homeName, homeScore = nameScore( home )
-	
-			outStr = "%s %s @ %s %s-%s"
-			# outStr = "%s,%s,%s,%s,%s"
-			print outStr % ( date, awayName, homeName, awayScore, homeScore )
+
+			if None == formatStr :
+				formatStr = "%s %s @ %s %s-%s"	# normal use
+				# formatStr = "%s,%s,%s,%s,%s"	# csv format
+			print formatStr % ( date, awayName, homeName, awayScore, homeScore )
+
 		except TypeError :
 			pass
 
@@ -89,16 +91,26 @@ def main() :
 		Make sure we have a url and then go do something useful
 
 	'''
+	from optparse import OptionParser
+
+	parser = OptionParser()
+	parser.add_option( "-f", "--format", dest="format", default = "%s %s @ %s %s-%s" )
+	( options, args ) = parser.parse_args()
+
 	if len( sys.argv ) < 2 :
 		import os
 
 		appName = os.path.basename( sys.argv[ 0 ] )
 		print "  Usage:", appName, '"url to scrape"'
 	else :
+		formatStr = options.format
+
 		url = sys.argv[ 1 ]
-		parsePage( url )
+		#print url
+		parsePage( url, formatStr )
 
 
 if __name__ == '__main__':
 	main()
+
 
