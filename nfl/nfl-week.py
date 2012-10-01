@@ -93,8 +93,10 @@ def main() :
 	'''
 	from optparse import OptionParser
 
-	parser = OptionParser()
-	parser.add_option( "-f", "--format", dest="format", default = "%s %s @ %s %s-%s" )
+	usage = "%prog [options] url"
+	parser = OptionParser( usage = usage )
+	parser.add_option( "-f", "--format", dest="format", default = "%s %s @ %s %s-%s",
+						help="determines the format of the scores data (\"%s,%s,%s,%s,%s\" generates CSV data)" )
 	( options, args ) = parser.parse_args()
 
 	if len( sys.argv ) < 2 :
@@ -104,9 +106,7 @@ def main() :
 		print "  Usage:", appName, '"url to scrape"'
 	else :
 		formatStr = options.format
-
-		url = sys.argv[ 1 ]
-		#print url
+		url = args[ 0 ]
 		parsePage( url, formatStr )
 
 
