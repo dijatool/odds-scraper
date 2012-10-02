@@ -170,16 +170,52 @@ class GameOdds( object ) :
 			Away @ Home with a positive odds display
 
 		'''
-		oddsStr = " (%s)"
-		awayOddsStr = ""
-		homeOddsStr = ""
+		away = self.teamWithOdds( self._away, self._awayOdds )
+		home = self.teamWithOdds( self._home, self._homeOdds )
 
-		if self._awayOdds[ 0 ] != '-' :
-			awayOddsStr = oddsStr % self._awayOdds
-		if self._homeOdds[ 0 ] != '-' :
-			homeOddsStr = oddsStr % self._homeOdds
+		return "%s @ %s" % ( away, home )
 
-		return "%s%s @ %s%s" % ( self._away, awayOddsStr, self._home, homeOddsStr )
+
+	def teamWithOdds( self, team, odds ) :
+		'''
+			Get the team name and if the odds are positive, the odds in parentheses
+
+		'''
+		oddsTmpl = " (%s)"
+		oddsStr = ""
+		if odds[ 0 ] != '-' :
+			oddsStr = oddsTmpl % odds
+
+		return "%s%s" % ( team, oddsStr )
+
+
+	def isUnderDog( self, odds ) :
+		'''
+			isUnderDog needs a description...
+
+		'''
+		dog = False
+		if odds[ 0 ] != '-' and odds[ 0 ] != 'e' :
+			dog = True
+		return dog
+
+
+	def oddsLineForFp( self ) :
+		'''
+			Away @ Home with a positive odds display
+
+			Game has a [*] prefix
+			Underdog has a bold wrapper
+		'''
+		away = self.teamWithOdds( self._away, self._awayOdds )
+		if self.isUnderDog( self._awayOdds ) :
+			away = "[b]%s[/b]" % away
+
+		home = self.teamWithOdds( self._home, self._homeOdds )
+		if self.isUnderDog( self._homeOdds ) :
+			home = "[b]%s[/b]" % home
+
+		return "%s [*]%s @ %s" % ( self.dateTime(), away, home )
 
 
 def compareGames( game ) :
