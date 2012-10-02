@@ -86,8 +86,6 @@ def main() :
 		Make sure we have a url and then go do something useful
 
 	'''
-	# url = "http://www.pro-football-reference.com/teams/nyg/2011.htm"
-	# url = "file://localhost/Users/dely/github/local/odds-scraper/pfr/giants-2011.htm"
 	if len( sys.argv ) < 2 :
 		import os
 
@@ -100,4 +98,5 @@ def main() :
 
 if __name__ == '__main__':
 	main()
+
 

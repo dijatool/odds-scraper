@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import urllib2
-# import os
-# import sys
-# import string
-# import re
 
 from BeautifulSoup import BeautifulSoup as bs
 
