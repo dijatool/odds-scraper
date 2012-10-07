@@ -1,15 +1,22 @@
 #!/usr/bin/env python
 
-# 
-# A test harness to see about converting text to a number and then
-# counting it upwards.
-# 
+from datetools import convertDateStr, dateFromMoDay, dateFromTextMoDay
 
-import re
+def main() :
+	'''
+		Run the test here
 
-pageMsg = "Page 1 of 4"
+	'''
+	# "Oct 7"
+	# "Oct 11"
+	date1 = dateFromMoDay( 10, 7 )
+	print date1
 
-pageInfo = re.findall( r'\b\d+\b', pageMsg )
-pageCount = int( pageInfo[1] )
-print pageCount
+	date2 = dateFromTextMoDay( "Oct 11" )
+	print date2
+
+
+if __name__ == '__main__':
+	main()
+
 

@@ -31,7 +31,7 @@ def main() :
 	( options, args ) = parser.parse_args()
 
 	url = "http://www.oddsshark.com/nfl/odds"
-	#url = "http://localhost/odds.html"
+# 	url = "http://localhost/odds.html"
 	opener = urllib2.build_opener()
 	link = opener.open( url )
 	page = link.read()
@@ -50,6 +50,10 @@ def main() :
 	if not options.genOddsText :
 		for theOdds in current :
 			print theOdds
+
+		print ; print "Current odds FP formatted..."
+		for theOdds in current :
+			print theOdds.gameWithOddsForFp()
 	else :
 		printFpOdds( current )
 

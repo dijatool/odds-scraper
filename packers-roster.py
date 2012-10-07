@@ -34,7 +34,7 @@ def loadPage( url ) :
 	return soup
 
 
-def download( url ) :
+def download( url, printLink = False ) :
 	'''
 		Pull the page and parse it into the pieces we need.
 	'''
@@ -51,10 +51,14 @@ def download( url ) :
 		aTable = aSection.findNextSibling( 'table' )
 		rows = aTable.findChildren( 'tr', { "class" : loopRegEx })
 		for aRow in rows :
-			# print aRow
 			name = aRow.findChild( 'td', { "class" : "col-name" })
+			link = name.findChild( 'a' )
+			linkUrl = "http://www.packers.com%s" % link[ 'href' ]
 			number = aRow.findChild( 'td', { "class" : "col-jersey" })
-			print cleanMsg( number ), cleanMsg( name )
+			if printLink :
+				print linkUrl, cleanMsg( number ), cleanMsg( name )
+			else :
+				print cleanMsg( number ), cleanMsg( name )
 		print
 
 

@@ -97,7 +97,12 @@ def main() :
 	parser = OptionParser( usage = usage )
 	parser.add_option( "-f", "--format", dest="format", default = "%s %s @ %s %s-%s",
 						help="determines the format of the scores data (\"%s,%s,%s,%s,%s\" generates CSV data)" )
+	parser.add_option( "-c", "--csv", dest="csvOut", default = False, action="store_true",
+						help="Force CSV formatting" )
 	( options, args ) = parser.parse_args()
+
+	if options.csvOut :
+		options.format = "%s,%s,%s,%s,%s"
 
 	if len( sys.argv ) < 2 :
 		import os

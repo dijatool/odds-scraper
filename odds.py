@@ -13,6 +13,9 @@ except :
 	from bs4 import BeautifulSoup as bs
 
 
+from datetools import dateFromTextMoDay
+
+
 _teamNames = {	'Buffalo' :			'Bills',
 				'Miami' :			'Dolphins',
 				'New England' :		'Patriots',
@@ -82,22 +85,6 @@ _teamLongitude = {	'Bills' :		-78.786944,
 					}
 
 
-# a strange list, but it works for football until they move to march
-_months = {	'mar' :	1,
-			'apr' :	2,
-			'may' :	3,
-			'jun' :	4,
-			'jul' :	5,
-			'aug' :	6,
-			'sep' :	7,
-			'oct' :	8,
-			'nov' :	9,
-			'dev' :	10,
-			'jan' :	11,
-			'feb' :	12,
-			}
-
-
 class GameOdds( object ) :
 	'''
 		class GameOddsData
@@ -111,12 +98,7 @@ class GameOdds( object ) :
 	'''
 	def __init__( self, date = None, time = None, away = None,
 					home = None, awayOdds = None, homeOdds = None ):
-		self._date = date
-
-		( month, day ) = date.split( ' ' )
-		self._month = _months.get( month.lower()[ : 3 ], 0 )
-		self._day = int( day )
-
+		self._date = dateFromTextMoDay( date )
 		self._time = time
 		self._away = away
 		self._home = home
@@ -154,7 +136,7 @@ class GameOdds( object ) :
 			Just the date and time
 
 		'''
-		return "%s %s" % ( self._date, self._time )
+		return "%s %s" % ( self._date.strftime( "%a %b %d" ), self._time )
 
 
 	def game( self ) :
@@ -207,6 +189,16 @@ class GameOdds( object ) :
 			Game has a [*] prefix
 			Underdog has a bold wrapper
 		'''
+		return "%s %s" % ( self.dateTime(), self.gameWithOddsForFp() )
+
+
+	def gameWithOddsForFp( self ) :
+		'''
+			Away @ Home with a positive odds display
+
+			Game has a [*] prefix
+			Underdog has a bold wrapper
+		'''
 		away = self.teamWithOdds( self._away, self._awayOdds )
 		if self.isUnderDog( self._awayOdds ) :
 			away = "[b]%s[/b]" % away
@@ -215,7 +207,7 @@ class GameOdds( object ) :
 		if self.isUnderDog( self._homeOdds ) :
 			home = "[b]%s[/b]" % home
 
-		return "%s [*]%s @ %s" % ( self.dateTime(), away, home )
+		return "[*]%s @ %s" % ( away, home )
 
 
 def compareGames( game ) :
@@ -223,7 +215,7 @@ def compareGames( game ) :
 		compareGames needs a description...
 
 	'''
-	return ''.join( ( str( game._month ), str( game._day ), game._time, str( _teamLongitude.get( game._home, 0 ))))
+	return ''.join( ( str( game._date ), game._time, str( _teamLongitude.get( game._home, 0 ))))
 
 
 def teamNameTranslate( teamCity ) :
