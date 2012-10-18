@@ -57,6 +57,10 @@ def main() :
 	else :
 		printFpOdds( current )
 
+	print
+	for theOdds in current :
+		print theOdds.dogAndPoints()
+
 
 if __name__ == '__main__':
 	main()

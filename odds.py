@@ -182,6 +182,22 @@ class GameOdds( object ) :
 		return dog
 
 
+	def dogAndPoints( self ) :
+		'''
+			Dump the underdog and the points all by itself
+
+		'''
+		team = ""
+		odds = ""
+		if self.isUnderDog( self._awayOdds ) :
+			team, odds = ( self._away, self._awayOdds )
+		else :
+			team, odds = ( self._home, self._homeOdds )
+		if odds[ 0 ] == '+' :
+			odds = odds[ 1 : ]
+		return "%s %s" % ( team, odds )
+
+
 	def oddsLineForFp( self ) :
 		'''
 			Away @ Home with a positive odds display
