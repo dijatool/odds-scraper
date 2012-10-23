@@ -43,13 +43,8 @@ def download( url ) :
 	paras = text.findAll()
 	for p in paras :
 		if 'p' == p.name[0] or 'h' == p.name[0] :
-			print cleanText( p.text )
+			print cleanText( p.getText( " " ))
 			print
-		# TODO:
-		#
-		#	Somehow this process is eating the bold tags and the spaces around them!!
-		#	Need to fix
-		#
 
 #	cookieJar.save( kCookieFile )
 
