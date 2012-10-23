@@ -4,15 +4,6 @@
 # http://www.webdevelopersnotes.com/design/list_of_HTML_character_entities.php3
 #
 
-# 
-# 	TODO
-# 		a nice replacement for my method of fixing text in cleanText
-# 		does it all in one pass!!!
-# 
-# 	http://stackoverflow.com/questions/6116978/python-replace-multiple-strings
-# 
-
-
 _cleanItems = {	'llsquo;'	: '\'',
 				'lldquo;'	: '"',
 				'rlsquo;'	: '\'',
@@ -28,9 +19,12 @@ _cleanItems = {	'llsquo;'	: '\'',
 				'&ndash;'	: '-',
 				'&quot;'	: '"',
 				'&nbsp;'	: '',
-				'&frac12;'	: ' 1/2',
 				'&frac14;'	: ' 1/4',
+				'&#188;'	: ' 1/4',
+				'&frac12;'	: ' 1/2',
+				'&#189;'	: ' 1/2',
 				'&frac34;'	: ' 3/4',
+				'&#190;'	: ' 3/4',
 				'&#233;'	: 'e',
 				'&hellip;'	: '...',
 				'&gt;'		: '>',
@@ -47,13 +41,21 @@ def cleanText( inText, forPrint = True ) :
 		Do some basic html substitution
 
 	'''
+	import re
+
 	if forPrint :
 		cleanText = inText.encode( 'ascii', 'xmlcharrefreplace' )
 	else :
 		cleanText = inText
 
-	for clean in _cleanItems :
-		cleanText = cleanText.replace( clean, _cleanItems.get( clean ))
-	return cleanText
+	#
+	# Basic description of this method here:
+	# 	http://stackoverflow.com/questions/6116978/python-replace-multiple-strings
+	#
+	# Note, we don't escape because that will break the search mechanism
+	#
+	pattern = re.compile( "|".join( _cleanItems.keys() ))
+	cleanText = pattern.sub( lambda m: _cleanItems[ m.group( 0 ) ], cleanText )
 
+	return cleanText
 
