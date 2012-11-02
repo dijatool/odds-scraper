@@ -198,6 +198,17 @@ class GameOdds( object ) :
 		return "%s %s" % ( team, odds )
 
 
+	def homeAndPoints( self ) :
+		'''
+			Dump the home team and the points all by itself
+
+		'''
+		odds = ( self._home, self._homeOdds )
+		if odds[ 0 ] == '+' :
+			odds = odds[ 1 : ]
+		return "%s %s" % ( self._home, self._homeOdds )
+
+
 	def oddsLineForFp( self ) :
 		'''
 			Away @ Home with a positive odds display
