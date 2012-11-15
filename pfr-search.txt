@@ -1,0 +1,13 @@
+
+# there has to be an easier way!!!
+
+http://www.pro-football-reference.com/play-index/tgl_finder.cgi?request=1&match=game&year_min=2002&year_max=2012&game_type=&game_num_min=0&game_num_max=99&week_num_min=0&week_num_max=99&game_day_of_week=&game_time=&time_zone=&game_location=&game_result=&overtime=&league_id=&team_id=&opp_id=&conference_game=&division_game=&tm_is_playoff=&opp_is_playoff=&tm_is_winning=&opp_is_winning=&tm_scored_first=&tm_led=&tm_trailed=&c1stat=rush_yds&c1comp=gt&c1val=60&c2stat=rush_yds&c2comp=lt&c2val=160&c3stat=&c3comp=gt&c3val=&c4stat=&c4comp=gt&c4val=&order_by=game_date
+
+
+http://www.pro-football-reference.com/play-index/tgl_finder.cgi?request=1&match=game&year_min=2002&year_max=2012&game_type=&game_num_min=0&game_num_max=99&week_num_min=0&week_num_max=99&game_day_of_week=&game_time=&time_zone=&game_location=&game_result=&overtime=&league_id=&team_id=&opp_id=&c1stat=rush_yds&c1comp=gt&c1val=60&c2stat=rush_yds&c2comp=lt&c2val=160&c3stat=&c3comp=gt&c3val=&c4stat=&c4comp=gt&c4val=&order_by=game_date&order_by_asc=&conference_game=&division_game=&tm_is_playoff=&opp_is_playoff=&tm_is_winning=&opp_is_winning=&tm_scored_first=&tm_led=&tm_trailed=&offset=600
+
+http://www.pro-football-reference.com/play-index/tgl_finder.cgi?request=1&match=game&year_min=2002&year_max=2012&game_type=&game_num_min=0&game_num_max=99&week_num_min=0&week_num_max=99&game_day_of_week=&game_time=&time_zone=&game_location=&game_result=&overtime=&league_id=&team_id=&opp_id=&c1stat=rush_yds&c1comp=gt&c1val=60&c2stat=rush_yds&c2comp=lt&c2val=160&c3stat=&c3comp=gt&c3val=&c4stat=&c4comp=gt&c4val=&order_by=game_date&order_by_asc=&conference_game=&division_game=&tm_is_playoff=&opp_is_playoff=&tm_is_winning=&opp_is_winning=&tm_scored_first=&tm_led=&tm_trailed=&offset=700
+
+
+http://www.pro-football-reference.com/play-index/tgl_finder.cgi?request=1&match=game&year_min=2002&year_max=2012&game_type=&game_num_min=0&game_num_max=99&week_num_min=0&week_num_max=99&game_day_of_week=&game_time=&time_zone=&game_location=&game_result=&overtime=&league_id=&team_id=&opp_id=&c1stat=rush_yds&c1comp=gt&c1val=60&c2stat=rush_yds&c2comp=lt&c2val=160&c3stat=&c3comp=gt&c3val=&c4stat=&c4comp=gt&c4val=&order_by=game_date&order_by_asc=&conference_game=&division_game=&tm_is_playoff=&opp_is_playoff=&tm_is_winning=&opp_is_winning=&tm_scored_first=&tm_led=&tm_trailed=&offset=900
+
