@@ -15,7 +15,7 @@ _months = {	'jan' :	1,
 			'sep' :	9,
 			'oct' :	10,
 			'nov' :	11,
-			'dev' :	12,
+			'dec' :	12,
 			}
 
 # these get filled in at runtime ...  kinda ugly, i don't care just now
