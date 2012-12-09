@@ -27,24 +27,32 @@ def printLine( team, scores, rangeStart, rangeEnd ) :
 	print "", scores[ rangeEnd ]
 
 
-def printScores( away, home, scoresArray ) :
+def printScores( away, home, scoresArray, skipFuture, skipFinished ) :
 	'''
 		Print the data from the game
 
 	'''
-	( away, home ) = teamsTranslate( away, home )
-	if len( scoresArray ) < 5 :
-		print "%11s   %s" % ( away, scoresArray[ 1 ] )
-		print "%11s   %s" % ( home, scoresArray[ 2 ] )
-	else :
-		chunkSize = len( scoresArray ) / 3
-		offset = chunkSize
-		printLine( away, scoresArray, offset, offset + chunkSize - 1 )
-		printLine( home, scoresArray, offset + chunkSize, offset + ( 2 * chunkSize ) - 1 )
-	print
+	doPrint = True
+	if skipFinished :
+		if 'Final' in scoresArray :
+			doPrint = False
+
+	if doPrint :
+		( away, home ) = teamsTranslate( away, home )
+		if len( scoresArray ) < 5 :
+			if False == skipFuture :
+				print "%11s   %s" % ( away, scoresArray[ 1 ] )
+				print "%11s   %s" % ( home, scoresArray[ 2 ] )
+				print
+		else :
+			chunkSize = len( scoresArray ) / 3
+			offset = chunkSize
+			printLine( away, scoresArray, offset, offset + chunkSize - 1 )
+			printLine( home, scoresArray, offset + chunkSize, offset + ( 2 * chunkSize ) - 1 )
+			print
 
 
-def download( url ) :
+def download( url, skipFuture=True, skipFinished=True ) :
 	'''
 		Pull the page and parse it into the pieces we need.
 	'''
@@ -78,6 +86,6 @@ def download( url ) :
 		for i, qtr in enumerate( qtrScores ) :
 			scoresArray.append( cleanText( qtr.text ))
 
-		printScores( away, home, scoresArray )
+		printScores( away, home, scoresArray, skipFuture, skipFinished )
 
 
