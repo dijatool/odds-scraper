@@ -34,7 +34,7 @@ def loadPage( url ) :
 	return soup
 
 
-def download( url, printLink = False ) :
+def download( url, printLink=False, printSchool=False ) :
 	'''
 		Pull the page and parse it into the pieces we need.
 	'''
@@ -55,8 +55,12 @@ def download( url, printLink = False ) :
 			link = name.findChild( 'a' )
 			linkUrl = "http://www.packers.com%s" % link[ 'href' ]
 			number = aRow.findChild( 'td', { "class" : "col-jersey" })
+			college = aRow.findChild( 'td', { "class" : "col-college" })
+
 			if printLink :
 				print linkUrl, cleanMsg( number ), cleanMsg( name )
+			elif printSchool :
+				print cleanMsg( number ), cleanMsg( name ), cleanMsg( college )
 			else :
 				print cleanMsg( number ), cleanMsg( name )
 		print
