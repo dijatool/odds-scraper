@@ -32,9 +32,8 @@ def printTableArray( table ) :
 
 	'''
 	for row in table :
-		for item in row :
-			print item,
-		print
+		#print " ".join( row )
+		print ",".join( row )
 
 
 def scoreSummary( soup ) :
@@ -81,6 +80,11 @@ def passing( soup ) :
 	print "Receiving"
 	printTableArray( tableToArray( tables[ 4 ] ))
 	printTableArray( tableToArray( tables[ 5 ] ))
+	print
+
+	print "Defense"
+	printTableArray( tableToArray( tables[ 12 ] ))
+	printTableArray( tableToArray( tables[ 13 ] ))
 	print
 
 
