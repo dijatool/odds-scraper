@@ -16,6 +16,28 @@ from odds import teamsTranslate
 kCookieFile = '/tmp/cookies/cookies.lwp'
 
 
+def isFuture( scoresArray ) :
+	'''
+		Is the game somewhere still in the future?
+
+	'''
+	future = False
+	if len( scoresArray ) < 5 :
+		future = True
+	return future
+
+
+def isFinal( scoresArray ) :
+	'''
+		Is the game finished (final)?
+
+	'''
+	final = False
+	if 'Final' in scoresArray :
+		final = True
+	return final
+
+
 def printLine( team, scores, rangeStart, rangeEnd ) :
 	'''
 		Print the team name and a run of score data.
@@ -27,19 +49,19 @@ def printLine( team, scores, rangeStart, rangeEnd ) :
 	print "", scores[ rangeEnd ]
 
 
-def printScores( away, home, scoresArray, skipFuture, skipFinished ) :
+def printScores( away, home, scoresArray, description, skipFuture, skipFinished ) :
 	'''
 		Print the data from the game
 
 	'''
 	doPrint = True
 	if skipFinished :
-		if 'Final' in scoresArray :
+		if isFinal( scoresArray ) :
 			doPrint = False
 
 	if doPrint :
 		( away, home ) = teamsTranslate( away, home )
-		if len( scoresArray ) < 5 :
+		if isFuture( scoresArray ) :
 			if False == skipFuture :
 				print "%11s   %s" % ( away, scoresArray[ 1 ] )
 				print "%11s   %s" % ( home, scoresArray[ 2 ] )
@@ -49,6 +71,8 @@ def printScores( away, home, scoresArray, skipFuture, skipFinished ) :
 			offset = chunkSize
 			printLine( away, scoresArray, offset, offset + chunkSize - 1 )
 			printLine( home, scoresArray, offset + chunkSize, offset + ( 2 * chunkSize ) - 1 )
+			if len( description ) > 0 :
+				print description
 			print
 
 
@@ -86,6 +110,14 @@ def download( url, skipFuture=True, skipFinished=True ) :
 		for i, qtr in enumerate( qtrScores ) :
 			scoresArray.append( cleanText( qtr.text ))
 
-		printScores( away, home, scoresArray, skipFuture, skipFinished )
+		description = ""
+		if not isFuture( scoresArray ) and not isFinal( scoresArray ) :
+			#find the 2nd table and grab the content!
+			tabs = aSection.parent.findChildren( 'table' )
+			descTable = tabs[ 1 ]
+			desc = descTable.findChildren( None, { "class" : "yspscores" } )[0]
+			description = cleanText( desc.getText( " " ))
+
+		printScores( away, home, scoresArray, description, skipFuture, skipFinished )
 
 
