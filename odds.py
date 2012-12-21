@@ -193,8 +193,7 @@ class GameOdds( object ) :
 			team, odds = ( self._away, self._awayOdds )
 		else :
 			team, odds = ( self._home, self._homeOdds )
-		if odds[ 0 ] == '+' :
-			odds = odds[ 1 : ]
+		odds = self._stripPlus( odds )
 		return "%s %s" % ( team, odds )
 
 
@@ -203,10 +202,9 @@ class GameOdds( object ) :
 			Dump the home team and the points all by itself
 
 		'''
-		odds = ( self._home, self._homeOdds )
-		if odds[ 0 ] == '+' :
-			odds = odds[ 1 : ]
-		return "%s %s" % ( self._home, self._homeOdds )
+		team, odds = ( self._home, self._homeOdds )
+		odds = self._stripPlus( odds )
+		return "%s %s" % ( team, odds )
 
 
 	def oddsLineForFp( self ) :
@@ -235,6 +233,16 @@ class GameOdds( object ) :
 			home = "[b]%s[/b]" % home
 
 		return "[*]%s @ %s" % ( away, home )
+
+
+	def _stripPlus( self, odds ) :
+		'''
+			_stripPlus needs a description...
+
+		'''
+		if odds[ 0 ] == '+' :
+			odds = odds[ 1 : ]
+		return odds
 
 
 def compareGames( game ) :
