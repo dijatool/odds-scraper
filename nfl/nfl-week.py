@@ -102,7 +102,7 @@ def main() :
 	( options, args ) = parser.parse_args()
 
 	if options.csvOut :
-		options.format = "%s,%s,%s,%s,%s"
+		options.format = "%s,%s,%s,%s,%s,"
 
 	if len( sys.argv ) < 2 :
 		import os
