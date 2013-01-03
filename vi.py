@@ -4,6 +4,7 @@
 from odds import teamsTranslate
 from misc import cleanText
 
+import string
 import urllib2
 
 from BeautifulSoup import BeautifulSoup as bs
@@ -35,13 +36,23 @@ except ImportError:
         from StringIO import StringIO as _StringIO
 
 
+def fixOddsStr( oddsStr ) :
+	'''
+		Replace instances of "&frac12;" with ".5" and trim any excess
+	'''
+	odds = string.replace( oddsStr, u'&frac12;', ".5" )
+	odds = string.replace( odds, u'½', ".5" )
+	return odds.strip()
+
+
 def fixOdds( awayOdds, homeOdds ) :
 	'''
 		fixOdds needs a description...
 
 	'''
-	awayOdds = cleanText( awayOdds )
-	homeOdds = cleanText( homeOdds )
+
+	awayOdds = cleanText( fixOddsStr( awayOdds ))
+	homeOdds = cleanText( fixOddsStr( homeOdds ))
 	if '-' == awayOdds[ 0 ] :
 		awayOdds = awayOdds.split( " " )[0]
 		homeOdds = awayOdds[ 1 : ]
@@ -94,7 +105,6 @@ def main() :
 	rows = oddsTable.findAll( 'tr' )
 
 	for aRow in rows :
-		#print aRow
 		try :
 			teams = aRow.findChildren( 'a', { "class" : "tabletext" })
 			if None != teams and len( teams )  > 0 :
@@ -105,12 +115,15 @@ def main() :
 				# find the proper column
 				cols = aRow.findAll( 'td' )
 
-				viOdds = cols[ 2 ].findChild( 'a' )
-				odssItems = viOdds.getText( "|" ).split( "|" )
-				awayOdds, homeOdds = fixOdds( odssItems[ 1 ], odssItems[ 2 ] )
+				homeOdds = ""
 
-				# print "+++++++++++++++++++++++++++++++++"
-				# print
+				try :
+					viOdds = cols[ 2 ].findChild( 'a' )
+					odssItems = viOdds.getText( "|" ).split( "|" )
+					awayOdds, homeOdds = fixOdds( odssItems[ 1 ], odssItems[ 2 ] )
+				except :
+					pass
+
 				print visitor, "@", home, homeOdds
 
 
