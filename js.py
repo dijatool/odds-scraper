@@ -33,8 +33,10 @@ def download( url ) :
 	soup = bs( page )
 
 	title = cleanText( soup.findChild( 'title' ).text )
-	print
+
 	print title
+	print
+	print url
 	print
 
 	# grab the text and print all the paragraphs
