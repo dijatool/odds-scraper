@@ -61,7 +61,8 @@ def doThreadComments( soup ) :
 		date = cleanMsg( commentRow.findChild( None, { "class" : "date" }))
 		date = date.replace( "&nbsp;", " " )
 
-		print poster, date
+		print poster
+		print date
 		print
 
 		# brute force strip all HTML data from message for now
