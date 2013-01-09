@@ -19,12 +19,9 @@ from BeautifulSoup import BeautifulSoup as bs
 #
 #	So the page is gzip'd, created a quick work around for it
 #
-#	FeedParser does this better or so I read...
-#	http://code.google.com/p/feedparser/
+#	FeedParser does this well
 #
 # 	git clone https://code.google.com/p/feedparser/
-#
-#
 #
 
 try:
@@ -50,7 +47,6 @@ def fixOdds( awayOdds, homeOdds ) :
 		fixOdds needs a description...
 
 	'''
-
 	awayOdds = cleanText( fixOddsStr( awayOdds ))
 	homeOdds = cleanText( fixOddsStr( homeOdds ))
 	if '-' == awayOdds[ 0 ] :
@@ -83,7 +79,6 @@ def main() :
 	( options, args ) = parser.parse_args()
 
 	url = "http://www.vegasinsider.com/nfl/odds/las-vegas/"
- 	# url = "http://localhost/odds.html"
 	opener = urllib2.build_opener()
 	response = opener.open( url )
 
@@ -103,6 +98,8 @@ def main() :
 	oddsTable = tables[ 1 ]
 
 	rows = oddsTable.findAll( 'tr' )
+
+	oddsOut = []
 
 	for aRow in rows :
 		try :
@@ -125,10 +122,18 @@ def main() :
 					pass
 
 				print visitor, "@", home, homeOdds
+				oddsOut.append( "%s %s" % ( home, homeOdds ))
 
 
 		except Exception as ex :
 			print "We had an exception!", ex
+
+	print
+	print "Home odds"
+	print
+
+	for aRow in oddsOut :
+			print aRow
 
 
 if __name__ == '__main__':
