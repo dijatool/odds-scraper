@@ -48,7 +48,15 @@ def findGameBookLink( url ) :
 	bookLink = None
 
 	bookSrch = re.compile( "gamebook" )
-	page = loadPage( url )
+	
+	done = False
+	while not done :
+		try :
+			page = loadPage( url )
+			done = True
+		except :
+			pass
+			# deal with IncompleteRead exceptions from NFL.com.... just keep trying.
 
 	buf = StringIO.StringIO( page )
 	for aLine in buf :
@@ -82,19 +90,21 @@ def main() :
 	'''
 	formatStr = ""
 
-	#parsePage( "http://www.nfl.com/gamecenter/2009112600/2009/REG12", formatStr )
-	parsePage( "http://www.nfl.com/scores/2009/REG12", formatStr )
-	#parsePage( "file:///tmp/pack/REG12", formatStr )
+	from optparse import OptionParser
 
-# 	if len( sys.argv ) < 2 :
-# 		import os
-#
-# 		appName = os.path.basename( sys.argv[ 0 ] )
-# 		print "  Usage:", appName, '"url to scrape"'
-# 	else :
-# 		formatStr = options.format
-# 		url = args[ 0 ]
-# 		parsePage( url, formatStr )
+	usage = "%prog [options] url"
+	parser = OptionParser( usage = usage )
+	( options, args ) = parser.parse_args()
+
+	if len( sys.argv ) < 2 :
+		import os
+
+		appName = os.path.basename( sys.argv[ 0 ] )
+		print "  Usage:", appName, '"url to scrape"'
+	else :
+		#formatStr = options.format
+		url = args[ 0 ]
+		parsePage( url, formatStr )
 
 
 if __name__ == '__main__':
