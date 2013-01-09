@@ -42,13 +42,22 @@ def download( url ) :
 	# grab the text and print all the paragraphs
 	text = soup.findChild( None, { 'class' : 'entry-content' })
 
+	if None == text :
+		text = soup.findChild( None, { 'class' : 'featured_story_right_content_no_image' })
+
 	paras = text.findAll()
 	for p in paras :
 		if 'p' == p.name[0] or 'h' == p.name[0] :
 			print cleanText( p.getText( " " ))
 			print
+		li = p.findChildren( 'li' )
+		if None != li :
+			for anItem in li :
+				print "o %s" % cleanText( anItem.getText( " " ))
+				print
 
 #	cookieJar.save( kCookieFile )
+
 
 
 def main() :
