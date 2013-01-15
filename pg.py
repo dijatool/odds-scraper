@@ -43,7 +43,10 @@ def download( url ) :
 	text = soup.findChild( None, { 'class' : 'gel-content' })
 	paras = text.findAll( 'p' )
 	for p in paras :
-		print cleanText( p.getText( " " ))
+		outText = cleanText( p.getText( " " )).rstrip()
+		if len( outText ) > 0 :
+			print outText
+			print
 
 	# cookieJar.save( kCookieFile )
 
