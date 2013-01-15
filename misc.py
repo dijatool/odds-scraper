@@ -41,6 +41,44 @@ _cleanItems = {	'llsquo;'	: '\'',
 				}
 
 
+def hexDump( data, indent = 0 ) :
+	'''
+		Dump a multiline hex representation of 'data' with trailing ascii.
+
+	'''
+	import binascii
+
+
+	hexData = []
+	asciiData = []
+	count = 0
+	lineLength = 0
+	hexData.append( " " * indent )
+
+	for byte in data :
+		hexData.append( binascii.hexlify( byte ) )
+		intVal = ord( byte )
+		if intVal >= 32 and intVal < 127 :
+			asciiData.append( byte )
+		else :
+			asciiData.append( '.' )
+		count += 1
+		lineLength += 1
+		if ( 0 == ( count % 16 )) :
+			hexData.append( " " * 4 )
+			hexData.append( ''.join( asciiData ))
+			asciiData = []
+			hexData.append( '\n' )
+			hexData.append( " " * indent )
+			lineLength = 0
+
+	hexData.append( "  " * ( 16 - lineLength ))
+	hexData.append( " " * 4 )
+	hexData.append( ''.join( asciiData ))
+
+	print ''.join( hexData )
+
+
 def cleanText( inText, forPrint = True ) :
 	'''
 		Do some basic html substitution
