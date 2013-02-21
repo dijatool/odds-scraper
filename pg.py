@@ -39,14 +39,26 @@ def download( url ) :
 	print url
 	print
 
+	# need to find the byline...
+# 	byLine = soup.findChild( None, { 'class' : 'ody-byline' })
+# 	paras = byLine.findAll( 'a' )
+# 	for a in paras :
+# 		outText = cleanText( a.getText( " " )).rstrip()
+# 		if len( outText ) > 0 :
+# 			print outText
+# 			print
+
 	# grab the text and print all the paragraphs
 	text = soup.findChild( None, { 'class' : 'gel-content' })
-	paras = text.findAll( 'p' )
+
+	paras = text.findAll()
+	#paras = text.findAll( 'p' )
 	for p in paras :
-		outText = cleanText( p.getText( " " )).rstrip()
-		if len( outText ) > 0 :
-			print outText
-			print
+		if 'p' == p.name[0] or 'h' == p.name[0] :
+			outText = cleanText( p.getText( " " )).rstrip()
+			if len( outText ) > 0 :
+				print outText
+				print
 
 	# cookieJar.save( kCookieFile )
 
