@@ -39,12 +39,21 @@ def download( url ) :
 	print
 
 	# grab the text and print all the paragraphs
-	items = soup.findChildren( None, { 'class' : 'articleBody' })
-	for anItem in items :
-		paras = anItem.findAll()
-		for p in paras :
-			if 'p' == p.name[0] or 'h' == p.name[0] :
-				print cleanText( p.getText( " " ))
+# 	items = soup.findChildren( None, { 'class' : 'articleBody' })
+# 
+# 	for anItem in items :
+# 		paras = anItem.findAll()
+# 		for p in paras :
+# 			if 'p' == p.name[0] or 'h' == p.name[0] :
+# 				print cleanText( p.getText( " " ))
+# 				print
+
+	# should find a better starting point... past the end of the first group of items...
+	moreItems = soup.findChildren( None, { 'itemprop' : 'articleBody' })
+	if None != moreItems :
+		for anItem in moreItems :
+			if 'p' == anItem.name[0] or 'h' == anItem.name[0] :
+				print cleanText( anItem.getText( " " ))
 				print
 
 #	cookieJar.save( kCookieFile )
