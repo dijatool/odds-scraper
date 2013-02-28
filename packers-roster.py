@@ -37,36 +37,67 @@ def loadPage( url ) :
 _names = [ 'last', 'first', 'number', 'link', 'position', 'height', 'weight', 'college',  ]
 
 
-def listToCsvRow( writer, buffer, aList ) :
+def toCsvRow( writer, buffer, rowData ) :
 	'''
 
 		Yuck ... need an object to wrap this all up in
 
 	'''
-	writer.writerow( aList )
+	writer.writerow( rowData )
 	row = buffer.getvalue().rstrip()
 	buffer.truncate( 0 )
 
 	return row
 
 
-def buildList( last, first, number, link, position, height, weight, college ) :
+# what follows are a set of callbacks to get data from the soup into a dictionary
+
+def getLink( row, destDict, destName, srcName ) :
 	'''
-		buildList needs a description...
+		getLink needs a description...
 
 	'''
-	aList = []
+	name = row.findChild( 'td', { "class" : "col-name" })
+	names = cleanMsg( name ).split( ',' )
+	first = names[ 1 ].rstrip().lstrip()
+	destDict[ 'first' ] = first
+	last = names[ 0 ]
+	destDict[ 'last' ] = last
+	link = name.findChild( 'a' )
+	linkUrl = "http://www.packers.com%s" % link[ 'href' ]
+	destDict[ destName ] = linkUrl
 
-	aList.append( last )
-	aList.append( first )
-	aList.append( number )
-	aList.append( link )
-	aList.append( position )
-	aList.append( height )
-	aList.append( weight )
-	aList.append( college )
 
-	return aList
+def getData( row, destDict, destName, srcName ) :
+	'''
+		getData needs a description...
+
+	'''
+	data = cleanMsg( row.findChild( 'td', { "class" : srcName }))
+	destDict[ destName ] = data
+
+
+def getHeight( row, destDict, destName, srcName ) :
+	'''
+		getHeight needs a description...
+
+	'''
+	data = cleanMsg( row.findChild( 'td', { "class" : srcName }))
+	hInfo = data.split( '-' )
+	height = 12 * int( hInfo[ 0 ] ) + int( hInfo[ 1 ] )
+	destDict[ destName ] = height
+
+
+_builder = {	# we handle the names when we do the link
+				# 'last'		:
+				# 'first'		:
+				'link'		: [ getLink, 'None' ],
+				'number'	: [ getData, 'col-jersey' ],
+				'position'	: [ getData, 'col-position' ],
+				'height'	: [ getHeight, 'col-height' ],
+				'weight'	: [ getData, 'col-weight' ],
+				'college'	: [ getData, 'col-college' ],
+				}
 
 
 def download( url, options, printLink=False, printSchool=False ) :
@@ -78,6 +109,7 @@ def download( url, options, printLink=False, printSchool=False ) :
 
 	buf = StringIO.StringIO()
 	writer = csv.writer( buf, quoting=csv.QUOTE_ALL )
+	dictWriter = csv.DictWriter( buf, _names, quoting=csv.QUOTE_ALL )
 
 	loopRegEx = re.compile( ' loop-' )		# each row has the class tag ' loop-*'
 
@@ -86,7 +118,7 @@ def download( url, options, printLink=False, printSchool=False ) :
 
 	if options.csv :
 		#print the names of all the columns so we have a real csv file
-		print listToCsvRow( writer, buf, _names )
+		print toCsvRow( writer, buf, _names )
 
 	# find the sections...
 	sections = mainBodyObj.findAll( None, { "class" : "mod-title-nobackground" })
@@ -97,24 +129,17 @@ def download( url, options, printLink=False, printSchool=False ) :
 		aTable = aSection.findNextSibling( 'table' )
 		rows = aTable.findChildren( 'tr', { "class" : loopRegEx })
 		for aRow in rows :
-			name = aRow.findChild( 'td', { "class" : "col-name" })
-			names = cleanMsg( name ).split( ',' )
-			first = names[ 1 ].rstrip().lstrip()
-			last = names[ 0 ]
-			link = name.findChild( 'a' )
-			linkUrl = "http://www.packers.com%s" % link[ 'href' ]
-			number = cleanMsg( aRow.findChild( 'td', { "class" : "col-jersey" }))
-			position = cleanMsg( aRow.findChild( 'td', { "class" : "col-position" }))
-			experience = cleanMsg( aRow.findChild( 'td', { "class" : "col-exp" }))
-			height = cleanMsg( aRow.findChild( 'td', { "class" : "col-height" }))
-			weight = cleanMsg( aRow.findChild( 'td', { "class" : "col-weight" }))
-			college = cleanMsg( aRow.findChild( 'td', { "class" : "col-college" }))
+			playerDict = {}
+			for aName in _names :
+				funcRef, scrName = _builder.get( aName, [ None, "" ] )
+				if None != funcRef :
+					funcRef( aRow, playerDict, aName, scrName )
 
 			if options.csv :
-				datums = buildList( last, first, number, linkUrl, position, height, weight, college )
-				print listToCsvRow( writer, buf, datums )
+				print toCsvRow( dictWriter, buf, playerDict )
 			else :
-				print number, "%s, %s" % ( last, first, )
+				print playerDict[ 'number' ], "%s, %s" % ( playerDict[ 'last' ], playerDict[ 'first' ], )
+
 		print
 
 
