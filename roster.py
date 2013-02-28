@@ -40,7 +40,7 @@ def loadPage( url ) :
 
 	return soup
 
-_names = [ 'last', 'first', 'number', 'link', 'position', 'height', 'weight', 'college',  ]
+_names = [ 'last', 'first', 'number', 'position', 'height', 'weight', 'college', 'link', ]
 
 
 def toCsvRow( writer, buffer, rowData ) :
