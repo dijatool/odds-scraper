@@ -5,14 +5,20 @@ import os
 import sys
 import string
 import re
+
 from BeautifulSoup import BeautifulSoup as bs
 
+#
 # Run like so...
 #
-#	packers-roster.py > /tmp/packers-roster-plain.txt
+#	~/github/local/odds-scraper/roster.py http://www.packers.com/team/players.html > /tmp/packers-roster-plain.txt
 #	md5 /tmp/packers-roster-plain.txt
 #
-#	~/github/local/odds-scraper/packers-roster.py --csv
+#	~/github/local/odds-scraper/roster.py http://www.chicagobears.com/team/roster.html --csv
+#	~/github/local/odds-scraper/roster.py http://www.chicagobears.com/team/roster.html
+#
+
+_baseUrl = "none"
 
 
 def cleanMsg( obj ) :
@@ -64,7 +70,9 @@ def getLink( row, destDict, destName, srcName ) :
 	last = names[ 0 ]
 	destDict[ 'last' ] = last
 	link = name.findChild( 'a' )
-	linkUrl = "http://www.packers.com%s" % link[ 'href' ]
+	#linkUrl = "http://www.packers.com%s" % link[ 'href' ]
+	#linkUrl = "http://www.vikings.com%s" % link[ 'href' ]
+	linkUrl = "%s%s" % ( _baseUrl, link[ 'href' ] )
 	destDict[ destName ] = linkUrl
 
 
@@ -84,7 +92,12 @@ def getHeight( row, destDict, destName, srcName ) :
 	'''
 	data = cleanMsg( row.findChild( 'td', { "class" : srcName }))
 	hInfo = data.split( '-' )
-	height = 12 * int( hInfo[ 0 ] ) + int( hInfo[ 1 ] )
+	height = data
+	try :
+		height = 12 * int( hInfo[ 0 ] ) + int( hInfo[ 1 ] )
+	except :
+		# sometimes we get bad data
+		pass
 	destDict[ destName ] = height
 
 
@@ -149,16 +162,25 @@ def doOptions() :
 
 	'''
 	from optparse import OptionParser
+	
+	url = None
 
-	usage = "  %prog [options]"
-	# appName = os.path.basename( sys.argv[ 0 ] )
+	usage = "  %prog [options] team-url"
 	parser = OptionParser( usage = usage )
 	parser.add_option( "-c", "--csv", dest="csv", default = False,
 						action="store_true",
 						help="Determine if we dump a CSV version of the data." )
 
 	( options, args ) = parser.parse_args()
-	return options
+
+	if len( args ) < 1 :
+		parser.print_help()
+		import sys
+		sys.exit( 0 )
+	else :
+		url = args[ 0 ]
+
+	return options, url
 
 
 def main() :
@@ -166,9 +188,14 @@ def main() :
 		Go do something useful.
 
 	'''
-	options = doOptions()
+	import urlparse
 
-	url = "http://www.packers.com/team/players.html"
+	global _baseUrl
+
+	options, url = doOptions()
+	parseUrl = urlparse.urlparse( url )
+	_baseUrl = '%s://%s' % ( parseUrl.scheme, parseUrl.netloc )
+
 	download( url, options )
 
 
