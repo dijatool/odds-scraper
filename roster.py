@@ -70,8 +70,6 @@ def getLink( row, destDict, destName, srcName ) :
 	last = names[ 0 ]
 	destDict[ 'last' ] = last
 	link = name.findChild( 'a' )
-	#linkUrl = "http://www.packers.com%s" % link[ 'href' ]
-	#linkUrl = "http://www.vikings.com%s" % link[ 'href' ]
 	linkUrl = "%s%s" % ( _baseUrl, link[ 'href' ] )
 	destDict[ destName ] = linkUrl
 
