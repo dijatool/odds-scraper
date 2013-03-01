@@ -56,6 +56,7 @@ def loadPage( url ) :
 
 	return soup
 
+
 _names = [ 'last', 'first', 'number', 'position', 'height', 'weight', 'college', 'link', ]
 
 
@@ -64,7 +65,19 @@ def toCsvRow( writer, buffer, rowData ) :
 
 		Yuck ... need an object to wrap this all up in
 
+		This whole thing has become a train wreak and the problem is still around...
+		May need to punt back to a totally different approach
+
 	'''
+	# translate to utf-8 so the CSV tools won't gag
+	# http://stackoverflow.com/questions/11800426/unicodeencodeerrors-while-using-dictwriter-for-utf-8
+	# http://stackoverflow.com/questions/5838605/python-dictwriter-writing-utf-8-encoded-csv-files
+	if isinstance( rowData, dict ) :
+		rowData = dict( ( k, v.encode( 'utf-8' )) for k, v in rowData.iteritems() )
+	else :
+		for i, anItem in enumerate( rowData ) :
+			rowData[ i ] =  anItem.encode( 'utf-8' )
+
 	writer.writerow( rowData )
 	row = buffer.getvalue().rstrip()
 	buffer.truncate( 0 )
@@ -101,7 +114,7 @@ def getData( row, destDict, destName, srcName ) :
 
 def getHeight( row, destDict, destName, srcName ) :
 	'''
-		getHeight needs a description...
+		Get height in inches...
 
 	'''
 	data = cleanMsg( row.findChild( 'td', { "class" : srcName }))
@@ -112,7 +125,7 @@ def getHeight( row, destDict, destName, srcName ) :
 	except :
 		# sometimes we get bad data
 		pass
-	destDict[ destName ] = height
+	destDict[ destName ] = unicode( height )
 
 
 _builder = {	# we handle the names when we do the link
@@ -155,10 +168,12 @@ def download( url, options, printLink=False, printSchool=False ) :
 	'''
 	import csv
 	import StringIO
+	import io
 
 	playerList = []
 
 	buf = StringIO.StringIO()
+	#buf = io.StringIO()
 	writer = csv.writer( buf, quoting=csv.QUOTE_ALL )
 	dictWriter = csv.DictWriter( buf, _names, quoting=csv.QUOTE_ALL )
 
