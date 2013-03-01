@@ -19,6 +19,7 @@ from BeautifulSoup import BeautifulSoup as bs
 #
 
 _baseUrl = "none"
+_loopRegEx = re.compile( ' loop-' )		# each row has the class tag ' loop-*'
 
 
 def cleanMsg( obj ) :
@@ -126,6 +127,28 @@ _builder = {	# we handle the names when we do the link
 				}
 
 
+def playerData( tableSoup, playerList, options ) :
+	'''
+		Pull each player and the associated data from the provided table...
+
+	'''
+	rows = tableSoup.findChildren( 'tr', { "class" : _loopRegEx })
+	for aRow in rows :
+		playerDict = {}
+		for aName in _names :
+			funcRef, scrName = _builder.get( aName, [ None, "" ] )
+			if None != funcRef :
+				funcRef( aRow, playerDict, aName, scrName )
+
+		if options.csv :
+			playerList.append( playerDict )
+		else :
+			print playerDict[ 'number' ], "%s, %s" % ( playerDict[ 'last' ], playerDict[ 'first' ], )
+
+	if not options.csv :
+		print
+
+
 def download( url, options, printLink=False, printSchool=False ) :
 	'''
 		Pull the page and parse it into the pieces we need.
@@ -139,33 +162,24 @@ def download( url, options, printLink=False, printSchool=False ) :
 	writer = csv.writer( buf, quoting=csv.QUOTE_ALL )
 	dictWriter = csv.DictWriter( buf, _names, quoting=csv.QUOTE_ALL )
 
-	loopRegEx = re.compile( ' loop-' )		# each row has the class tag ' loop-*'
-
 	soup = loadPage( url )
 	mainBodyObj = soup.findChild( None, { "class" : "game-roster-large" }).findChild( None, { "class" : "bd" })
 
 	# find the sections...
 	sections = mainBodyObj.findAll( None, { "class" : "mod-title-nobackground" })
-	for i, aSection in enumerate( sections ) :
-		if not options.csv :
-			print cleanMsg( aSection )
-		# now get at the table stuff just below each section...
-		aTable = aSection.findNextSibling( 'table' )
-		rows = aTable.findChildren( 'tr', { "class" : loopRegEx })
-		for aRow in rows :
-			playerDict = {}
-			for aName in _names :
-				funcRef, scrName = _builder.get( aName, [ None, "" ] )
-				if None != funcRef :
-					funcRef( aRow, playerDict, aName, scrName )
 
-			if options.csv :
-				playerList.append( playerDict )
-			else :
-				print playerDict[ 'number' ], "%s, %s" % ( playerDict[ 'last' ], playerDict[ 'first' ], )
+	if len( sections ) > 1 :
+		for aSection in sections :
+			if not options.csv :
+				print cleanMsg( aSection )
+			# now get at the table stuff just below each section...
+			aTable = aSection.findNextSibling( 'table' )
+			playerData( aTable, playerList, options )
+	else :
+		# miami and the bucs do things differently
+		aTable = mainBodyObj.findChild( 'table' )
+		playerData( aTable, playerList, options )
 
-		if not options.csv :
-			print
 
 	if options.csv :
 		if options.outputToFile :
