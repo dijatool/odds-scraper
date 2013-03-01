@@ -28,6 +28,21 @@ def cleanMsg( obj ) :
 	return ''.join( bs( str( obj )).findAll( text=True )).strip()
 
 
+def writeWinFile( filePath, data ) :
+	'''
+		Write out an array of text using windows linefeeds.
+
+		Using the io classes forces us to convert to unicode
+
+	'''
+	import io
+
+	theFile = io.open( filePath, mode='w', newline='\r\n' )
+	for aLine in data :
+		theFile.write( unicode( "%s\n" % aLine ))
+	theFile.close()
+
+
 def loadPage( url ) :
 	'''
 		Given a url returns a soup object
@@ -118,6 +133,8 @@ def download( url, options, printLink=False, printSchool=False ) :
 	import csv
 	import StringIO
 
+	playerList = []
+
 	buf = StringIO.StringIO()
 	writer = csv.writer( buf, quoting=csv.QUOTE_ALL )
 	dictWriter = csv.DictWriter( buf, _names, quoting=csv.QUOTE_ALL )
@@ -126,10 +143,6 @@ def download( url, options, printLink=False, printSchool=False ) :
 
 	soup = loadPage( url )
 	mainBodyObj = soup.findChild( None, { "class" : "game-roster-large" }).findChild( None, { "class" : "bd" })
-
-	if options.csv :
-		#print the names of all the columns so we have a real csv file
-		print toCsvRow( writer, buf, _names )
 
 	# find the sections...
 	sections = mainBodyObj.findAll( None, { "class" : "mod-title-nobackground" })
@@ -147,11 +160,24 @@ def download( url, options, printLink=False, printSchool=False ) :
 					funcRef( aRow, playerDict, aName, scrName )
 
 			if options.csv :
-				print toCsvRow( dictWriter, buf, playerDict )
+				playerList.append( playerDict )
 			else :
 				print playerDict[ 'number' ], "%s, %s" % ( playerDict[ 'last' ], playerDict[ 'first' ], )
 
-		print
+		if not options.csv :
+			print
+
+	if options.csv :
+		if options.outputToFile :
+			outData = []
+			outData.append( toCsvRow( writer, buf, _names ))
+			for aPlayer in playerList :
+				outData.append( toCsvRow( dictWriter, buf, aPlayer ))
+			writeWinFile( options.csvFile, outData )
+		else :
+			print toCsvRow( writer, buf, _names )
+			for aPlayer in playerList :
+				print toCsvRow( dictWriter, buf, aPlayer )
 
 
 def doOptions() :
@@ -160,7 +186,7 @@ def doOptions() :
 
 	'''
 	from optparse import OptionParser
-	
+
 	url = None
 
 	usage = "  %prog [options] team-url"
@@ -168,8 +194,11 @@ def doOptions() :
 	parser.add_option( "-c", "--csv", dest="csv", default = False,
 						action="store_true",
 						help="Determine if we dump a CSV version of the data." )
+	parser.add_option( "", "--csvFile", dest="csvFile", default = None,
+						help="Path to output a CSV file." )
 
 	( options, args ) = parser.parse_args()
+	setattr( options, 'outputToFile', False )
 
 	if len( args ) < 1 :
 		parser.print_help()
@@ -177,6 +206,9 @@ def doOptions() :
 		sys.exit( 0 )
 	else :
 		url = args[ 0 ]
+
+	if options.csv and options.csvFile :
+		options.outputToFile = True
 
 	return options, url
 
