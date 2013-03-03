@@ -29,21 +29,6 @@ def cleanMsg( obj ) :
 	return ''.join( bs( str( obj )).findAll( text=True )).strip()
 
 
-def writeWinFile( filePath, data ) :
-	'''
-		Write out an array of text using windows linefeeds.
-
-		Using the io classes forces us to convert to unicode
-
-	'''
-	import io
-
-	theFile = io.open( filePath, mode='w', newline='\r\n' )
-	for aLine in data :
-		theFile.write( unicode( "%s\n" % aLine ))
-	theFile.close()
-
-
 def loadPage( url ) :
 	'''
 		Given a url returns a soup object
@@ -56,8 +41,7 @@ def loadPage( url ) :
 
 	return soup
 
-
-_names = [ 'last', 'first', 'number', 'position', 'height', 'weight', 'college', 'link', ]
+_names = [ u'last', u'first', u'number', u'position', u'height', u'weight', u'college', u'link', ]
 
 
 def toCsvRow( writer, buffer, rowData ) :
@@ -69,15 +53,6 @@ def toCsvRow( writer, buffer, rowData ) :
 		May need to punt back to a totally different approach
 
 	'''
-	# translate to utf-8 so the CSV tools won't gag
-	# http://stackoverflow.com/questions/11800426/unicodeencodeerrors-while-using-dictwriter-for-utf-8
-	# http://stackoverflow.com/questions/5838605/python-dictwriter-writing-utf-8-encoded-csv-files
-	if isinstance( rowData, dict ) :
-		rowData = dict( ( k, v.encode( 'utf-8' )) for k, v in rowData.iteritems() )
-	else :
-		for i, anItem in enumerate( rowData ) :
-			rowData[ i ] =  anItem.encode( 'utf-8' )
-
 	writer.writerow( rowData )
 	row = buffer.getvalue().rstrip()
 	buffer.truncate( 0 )
@@ -95,11 +70,11 @@ def getLink( row, destDict, destName, srcName ) :
 	name = row.findChild( 'td', { "class" : "col-name" })
 	names = cleanMsg( name ).split( ',' )
 	first = names[ 1 ].rstrip().lstrip()
-	destDict[ 'first' ] = first
+	destDict[ u'first' ] = first
 	last = names[ 0 ]
-	destDict[ 'last' ] = last
+	destDict[ u'last' ] = last
 	link = name.findChild( 'a' )
-	linkUrl = "%s%s" % ( _baseUrl, link[ 'href' ] )
+	linkUrl = u"%s%s" % ( _baseUrl, link[ 'href' ] )
 	destDict[ destName ] = linkUrl
 
 
@@ -129,14 +104,14 @@ def getHeight( row, destDict, destName, srcName ) :
 
 
 _builder = {	# we handle the names when we do the link
-				# 'last'		:
-				# 'first'		:
-				'link'		: [ getLink, 'None' ],
-				'number'	: [ getData, 'col-jersey' ],
-				'position'	: [ getData, 'col-position' ],
-				'height'	: [ getHeight, 'col-height' ],
-				'weight'	: [ getData, 'col-weight' ],
-				'college'	: [ getData, 'col-college' ],
+				# u'last'		:
+				# u'first'		:
+				u'link'		: [ getLink, 'None' ],
+				u'number'	: [ getData, 'col-jersey' ],
+				u'position'	: [ getData, 'col-position' ],
+				u'height'	: [ getHeight, 'col-height' ],
+				u'weight'	: [ getData, 'col-weight' ],
+				u'college'	: [ getData, 'col-college' ],
 				}
 
 
@@ -166,16 +141,14 @@ def download( url, options, printLink=False, printSchool=False ) :
 	'''
 		Pull the page and parse it into the pieces we need.
 	'''
-	import csv
+	import unicodecsv
 	import StringIO
-	import io
 
 	playerList = []
 
-	buf = StringIO.StringIO()
-	#buf = io.StringIO()
-	writer = csv.writer( buf, quoting=csv.QUOTE_ALL )
-	dictWriter = csv.DictWriter( buf, _names, quoting=csv.QUOTE_ALL )
+	strBuffer = StringIO.StringIO()
+	writer = unicodecsv.writer( strBuffer, quoting=unicodecsv.QUOTE_ALL )
+	dictWriter = unicodecsv.DictWriter( strBuffer, _names, quoting=unicodecsv.QUOTE_ALL )
 
 	soup = loadPage( url )
 	mainBodyObj = soup.findChild( None, { "class" : "game-roster-large" }).findChild( None, { "class" : "bd" })
@@ -198,15 +171,17 @@ def download( url, options, printLink=False, printSchool=False ) :
 
 	if options.csv :
 		if options.outputToFile :
-			outData = []
-			outData.append( toCsvRow( writer, buf, _names ))
+			myfile = open( options.csvFile, mode='w' )
+			fileWriter = unicodecsv.DictWriter( myfile, _names, quoting=unicodecsv.QUOTE_ALL )
+			fileWriter.writeheader()
 			for aPlayer in playerList :
-				outData.append( toCsvRow( dictWriter, buf, aPlayer ))
-			writeWinFile( options.csvFile, outData )
+				fileWriter.writerow( aPlayer )
+			myfile.close()
+
 		else :
-			print toCsvRow( writer, buf, _names )
+			print toCsvRow( writer, strBuffer, _names )
 			for aPlayer in playerList :
-				print toCsvRow( dictWriter, buf, aPlayer )
+				print toCsvRow( dictWriter, strBuffer, aPlayer )
 
 
 def doOptions() :
