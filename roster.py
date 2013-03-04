@@ -137,7 +137,7 @@ def playerData( tableSoup, playerList, options ) :
 		print
 
 
-def download( url, options, printLink=False, printSchool=False ) :
+def download( url, options ) :
 	'''
 		Pull the page and parse it into the pieces we need.
 	'''
