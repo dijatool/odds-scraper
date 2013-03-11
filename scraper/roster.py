@@ -41,7 +41,9 @@ def loadPage( url ) :
 
 	return soup
 
-_names = [ u'last', u'first', u'number', u'position', u'height', u'weight', u'college', u'link', ]
+
+#_names = [ u'last', u'first', u'number', u'position', u'height', u'weight', u'college', u'link', ]
+_names = [ u'last', u'first', u'age', u'exp', u'number', u'position', u'height', u'weight', u'college', u'link', ]
 
 
 def toCsvRow( writer, buffer, rowData ) :
@@ -104,9 +106,9 @@ def getHeight( row, destDict, destName, srcName ) :
 
 
 _builder = {	# we handle the names when we do the link
-				# u'last'		:
-				# u'first'		:
 				u'link'		: [ getLink, 'None' ],
+				u'age'		: [ getData, 'col-bd' ],
+				u'exp'		: [ getData, 'col-exp' ],
 				u'number'	: [ getData, 'col-jersey' ],
 				u'position'	: [ getData, 'col-position' ],
 				u'height'	: [ getHeight, 'col-height' ],

@@ -6,6 +6,9 @@ import sys
 import string
 import re
 
+from misc import cleanText
+
+
 from BeautifulSoup import BeautifulSoup as bs
 
 
@@ -67,7 +70,10 @@ def doThreadComments( soup ) :
 
 		# brute force strip all HTML data from message for now
 		msgObj = commentRow.findChild( None, { "class" : "postcontent restore" })
-		msg = ''.join( bs( str( msgObj ) ).findAll( text=True )).strip()
+
+		#msg = ''.join( bs( str( msgObj ) ).findAll( text=True )).strip()
+		msg = cleanText( ''.join( bs( str( msgObj ) ).findAll( text=True )).strip() )
+		
 		print msg.encode( 'ascii', 'ignore' )
 
 		print " =============================="
