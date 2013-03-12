@@ -11,11 +11,11 @@ from BeautifulSoup import BeautifulSoup as bs
 #
 # Run like so...
 #
-#	~/github/local/odds-scraper/roster.py http://www.packers.com/team/players.html > /tmp/packers-roster-plain.txt
+#	~/github/local/odds-scraper/scraper/roster.py http://www.packers.com/team/players.html > /tmp/packers-roster-plain.txt
 #	md5 /tmp/packers-roster-plain.txt
 #
-#	~/github/local/odds-scraper/roster.py http://www.chicagobears.com/team/roster.html --csv
-#	~/github/local/odds-scraper/roster.py http://www.chicagobears.com/team/roster.html
+#	~/github/local/odds-scraper/scraper/roster.py http://www.chicagobears.com/team/roster.html --csv
+#	~/github/local/odds-scraper/scraper/roster.py http://www.chicagobears.com/team/roster.html
 #
 
 _baseUrl = "none"
@@ -145,6 +145,12 @@ def download( url, options ) :
 	'''
 	import unicodecsv
 	import StringIO
+	import urlparse
+	from operator import itemgetter
+
+	global _baseUrl
+	parseUrl = urlparse.urlparse( url )
+	_baseUrl = '%s://%s' % ( parseUrl.scheme, parseUrl.netloc )
 
 	playerList = []
 
@@ -170,8 +176,8 @@ def download( url, options ) :
 		aTable = mainBodyObj.findChild( 'table' )
 		playerData( aTable, playerList, options )
 
-
 	if options.csv :
+		playerList.sort( key=itemgetter( 'last','first' ))
 		if options.outputToFile :
 			myfile = open( options.csvFile, mode='w' )
 			fileWriter = unicodecsv.DictWriter( myfile, _names, quoting=unicodecsv.QUOTE_ALL )
@@ -224,13 +230,7 @@ def main() :
 		Go do something useful.
 
 	'''
-	import urlparse
-
-	global _baseUrl
-
 	options, url = doOptions()
-	parseUrl = urlparse.urlparse( url )
-	_baseUrl = '%s://%s' % ( parseUrl.scheme, parseUrl.netloc )
 
 	download( url, options )
 
