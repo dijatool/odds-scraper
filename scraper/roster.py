@@ -95,12 +95,13 @@ def getHeight( row, destDict, destName, srcName ) :
 
 	'''
 	data = cleanMsg( row.findChild( 'td', { "class" : srcName }))
+	data = data.replace( '"', '' )
+	data = data.replace( "'", '-' )
 	hInfo = data.split( '-' )
 	height = data
 	try :
 		height = 12 * int( hInfo[ 0 ] ) + int( hInfo[ 1 ] )
 	except :
-		# sometimes we get bad data
 		pass
 	destDict[ destName ] = unicode( height )
 
