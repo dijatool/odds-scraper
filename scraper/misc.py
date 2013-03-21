@@ -4,7 +4,8 @@
 # http://www.webdevelopersnotes.com/design/list_of_HTML_character_entities.php3
 #
 
-_cleanItems = {	'llsquo;'	: '\'',
+_cleanItems = {	'&#39;'		: '\'',
+				'llsquo;'	: '\'',
 				'lldquo;'	: '"',
 				'rlsquo;'	: '\'',
 				'rldquo;'	: '"',
