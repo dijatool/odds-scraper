@@ -5,6 +5,7 @@ import os
 import sys
 import string
 import re
+import traceback
 
 from BeautifulSoup import BeautifulSoup as bs
 
@@ -134,7 +135,14 @@ def playerData( tableSoup, playerList, options ) :
 		if options.csv :
 			playerList.append( playerDict )
 		else :
-			print playerDict[ 'number' ], "%s, %s" % ( playerDict[ 'last' ], playerDict[ 'first' ], )
+			try :
+				print playerDict[ 'number' ], "%s, %s" % ( playerDict[ 'last' ], playerDict[ 'first' ], )
+			except ( UnicodeError, UnicodeEncodeError ) as exCode :
+				traceback.print_exc()
+				print playerDict
+			except Exception as exCode :
+				print "Something went wrong but it's not unicode!!"
+				traceback.print_exc()
 
 	if not options.csv :
 		print
@@ -231,8 +239,12 @@ def main() :
 		Go do something useful.
 
 	'''
+	import codecs
+	sys.stdout = codecs.getwriter( 'utf8' )( sys.stdout )
+
 	options, url = doOptions()
 
+	#import ipdb ; ipdb.set_trace()
 	download( url, options )
 
 
