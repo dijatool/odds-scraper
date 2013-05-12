@@ -34,9 +34,18 @@ def download( url ) :
 
 	title = cleanText( soup.findChild( 'title' ).text )
 
+	print
 	print title
 	print
 	print url
+	print
+
+	author = soup.findChild( 'span', { 'class' : 'author vcard' })
+	print author.getText( " " )
+
+	timestamp = soup.findChild( 'span', { 'class' : 'timestamp' })
+	print timestamp.getText( " " )
+
 	print
 
 	# grab the text and print all the paragraphs

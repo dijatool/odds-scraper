@@ -16,6 +16,30 @@ from misc import cleanText
 kCookieFile = '/tmp/cookies/cookies.lwp'
 
 
+def cleanTimeStamp( stampText ) :
+	'''
+		cleanTimeStamp needs a description...
+
+	'''
+	timestamp = stampText.getText( " " ).lstrip().rstrip()
+	timestamp = timestamp.replace( "&nbsp;", "" )
+	items = timestamp.split( '|' )
+	timestamp = items[ 0 ].rstrip()
+
+	return timestamp
+
+
+def cleanAuthor( authorText ) :
+	'''
+		cleanAuthor needs a description...
+
+	'''
+	paras = authorText.findAll()
+	author = paras[ 1 ]
+	author = author.getText( " " ).lstrip().rstrip()
+	return author
+
+
 def download( url ) :
 	'''
 		Pull the page and parse it into the pieces we need.
@@ -34,19 +58,23 @@ def download( url ) :
 
 	title = cleanText( soup.findChild( 'title' ).text )
 
+	print
 	print title
 	print
 	print url
 	print
 
-	# need to find the byline...
-# 	byLine = soup.findChild( None, { 'class' : 'ody-byline' })
-# 	paras = byLine.findAll( 'a' )
-# 	for a in paras :
-# 		outText = cleanText( a.getText( " " )).rstrip()
-# 		if len( outText ) > 0 :
-# 			print outText
-# 			print
+	try :
+		author = soup.findChild( 'div', { 'id' : 'ody-byline-written-by' })
+		print cleanAuthor( author )
+
+		timestamp = soup.findChild( 'div', { 'class' : 'ody-arttime' })
+		print cleanTimeStamp( timestamp )
+
+		print
+	except :
+		pass
+
 
 	# grab the text and print all the paragraphs
 	text = soup.findChild( None, { 'class' : 'gel-content' })
