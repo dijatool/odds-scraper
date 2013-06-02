@@ -40,11 +40,17 @@ def download( url ) :
 	print url
 	print
 
-	author = soup.findChild( 'span', { 'class' : 'author vcard' })
-	print author.getText( " " )
+	try :
+		author = soup.findChild( 'span', { 'class' : 'author vcard' })
+		print author.getText( " " )
+	except :
+		pass
 
-	timestamp = soup.findChild( 'span', { 'class' : 'timestamp' })
-	print timestamp.getText( " " )
+	try :
+		timestamp = soup.findChild( 'span', { 'class' : 'timestamp' })
+		print timestamp.getText( " " )
+	except :
+		pass
 
 	print
 
