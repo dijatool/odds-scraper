@@ -1,21 +1,51 @@
 #!/usr/bin/env python
 
 #
-#	Pull apart journal sentinel articles as their firewall has made this a
-#	giant PIA
+#	Pull apart bloomberg articles
 #
 
 import os
 import urllib2
 import cookielib
-try :
-	from bs4 import BeautifulSoup as bs
-except :
-	from BeautifulSoup import BeautifulSoup as bs
+
+from BeautifulSoup import BeautifulSoup as bs
 
 from misc import cleanText
 
 kCookieFile = '/tmp/cookies/cookies.lwp'
+
+
+
+def dumpDivsIdClass( soup ) :
+	'''
+		dumpDivsIdClass needs a description...
+	
+	'''
+	divs = soup.findChildren( 'div' )
+	for div in divs :
+		divId = None
+		divClass = None
+		try :
+			divId = div[ 'id' ]
+		except :
+			pass
+		try :
+			divClass = div[ 'class' ]
+		except :
+			pass
+		print divId, '/', divClass
+
+
+
+def dumpDivs( soup ) :
+	'''
+		dumpDivs needs a description...
+	
+	'''
+	divs = soup.findChildren( 'div' )
+	for div in divs :
+		print div
+
 
 
 def download( url ) :
@@ -42,14 +72,18 @@ def download( url ) :
 	print url
 	print
 
+	#dumpDivsIdClass( soup )
+	#dumpDivs( soup )
+
+	meta = soup.findChild( 'div', { 'id' : 'story_meta' })
 	try :
-		author = soup.findChild( 'span', { 'class' : 'author vcard' })
+		author = meta.findChild( 'span', { 'class' : 'last' })
 		print author.getText( " " )
 	except :
 		pass
 
 	try :
-		timestamp = soup.findChild( 'span', { 'class' : 'timestamp' })
+		timestamp = meta.findChild( 'span', { 'class' : 'datestamp' })
 		print timestamp.getText( " " )
 	except :
 		pass
@@ -57,10 +91,7 @@ def download( url ) :
 	print
 
 	# grab the text and print all the paragraphs
-	text = soup.findChild( None, { 'class' : 'entry-content' })
-
-	if None == text :
-		text = soup.findChild( None, { 'class' : 'featured_story_right_content_no_image' })
+	text = soup.findChild( None, { 'id' : 'story_display' })
 
 	paras = text.findAll()
 	for p in paras :
@@ -83,18 +114,16 @@ def main() :
 		pieces we need.
 
 	'''
-	import sys
-	# fix my unicode errors on pipes
-	# it works but I'm not sure if I'm going to use it
-	# import codecs
-	# sys.stdout = codecs.getwriter( 'utf8' )( sys.stdout )
+# 	import sys
+# 	if len( sys.argv ) < 2 :
+# 		appName = os.path.basename( sys.argv[ 0 ] )
+# 		print "\tUsage:", appName, "url to scrape"
+# 	else :
+# 		url = sys.argv[ 1 ]
+# 		download( url )
 
-	if len( sys.argv ) < 2 :
-		appName = os.path.basename( sys.argv[ 0 ] )
-		print "\tUsage:", appName, "url to scrape"
-	else :
-		url = sys.argv[ 1 ]
-		download( url )
+	url = 'file:///tmp/pack/u-s-agencies-said-to-swap-data-with-thousands-of-firms.html'
+	download( url )
 
 
 if __name__ == '__main__':

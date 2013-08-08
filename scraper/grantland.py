@@ -11,8 +11,7 @@
 import os
 import urllib2
 import cookielib
-
-from BeautifulSoup import BeautifulSoup as bs
+from bs4 import BeautifulSoup as bs
 
 from misc import cleanText
 
