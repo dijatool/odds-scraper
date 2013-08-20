@@ -126,23 +126,29 @@ def playerData( tableSoup, playerList, options ) :
 	'''
 	rows = tableSoup.findChildren( 'tr', { "class" : _loopRegEx })
 	for aRow in rows :
+		ignorePlayer = False
 		playerDict = {}
 		for aName in _names :
 			funcRef, scrName = _builder.get( aName, [ None, "" ] )
 			if None != funcRef :
 				funcRef( aRow, playerDict, aName, scrName )
 
-		if options.csv :
-			playerList.append( playerDict )
-		else :
-			try :
-				print playerDict[ 'number' ], "%s, %s" % ( playerDict[ 'last' ], playerDict[ 'first' ], )
-			except ( UnicodeError, UnicodeEncodeError ) as exCode :
-				traceback.print_exc()
-				print playerDict
-			except Exception as exCode :
-				print "Something went wrong but it's not unicode!!"
-				traceback.print_exc()
+		# if either names is empty ignore the record
+		if playerDict[ 'first' ] == '' or playerDict[ 'last' ] == '' :
+			ignorePlayer = True
+
+		if not ignorePlayer :
+			if options.csv :
+				playerList.append( playerDict )
+			else :
+				try :
+					print playerDict[ 'number' ], "%s, %s" % ( playerDict[ 'last' ], playerDict[ 'first' ], )
+				except ( UnicodeError, UnicodeEncodeError ) as exCode :
+					traceback.print_exc()
+					print playerDict
+				except Exception as exCode :
+					print "Something went wrong but it's not unicode!!"
+					traceback.print_exc()
 
 	if not options.csv :
 		print
