@@ -166,11 +166,22 @@ def main() :
 		for aRow in oddsOut :
 			visitor, visitorOdds, home, homeOdds = aRow
 			if len( visitorOdds ) :
+				pre = '   '
+				try :
+					val = float( homeOdds )
+					if val < 0 :
+						val = val * -1
+					#print val
+					if val < 3 :
+						pre = 'XXX'
+				except :
+					pass
+
 				if visitorOdds[0] == '-' :
 					outs = '[*]%s @ [b]%s (+%s)[/b]' % ( visitor, home, homeOdds )
 				else :
 					outs = '[*][b]%s (+%s)[/b] @ %s' % ( visitor, visitorOdds, home )
-				print outs
+				print pre, outs
 
 
 if __name__ == '__main__':
