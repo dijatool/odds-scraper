@@ -59,6 +59,29 @@ def fixOdds( awayOdds, homeOdds ) :
 	return awayOdds, homeOdds
 
 
+def doOptions() :
+	'''
+		doOptions needs a description...
+
+	'''
+	from optparse import OptionParser
+
+	url = "http://www.vegasinsider.com/nfl/odds/las-vegas/"
+
+	usage = "%prog [options]"
+	parser = OptionParser( usage = usage )
+	parser.add_option( "-e", "--extendedOdds", dest="extendedOdds", default = False,
+						action="store_true",
+						help="Determine if we show all the extra data." )
+	parser.add_option( "-f", "--fp", dest="fpOdds", default = False,
+						action="store_true",
+						help="Should we print FP formatted odds?" )
+
+	( options, args ) = parser.parse_args()
+
+	return options, url
+
+
 def main() :
 	'''
 		Pull the page and parse it into the pieces we need.
@@ -68,17 +91,8 @@ def main() :
 				find all the tr's
 
 	'''
-	from optparse import OptionParser
+	options, url = doOptions()
 
-	usage = "%prog [options]"
-	parser = OptionParser( usage = usage )
-	parser.add_option( "-e", "--extendedOdds", dest="extendedOdds", default = False,
-						action="store_true",
-						help="Determine if we show all the extra data." )
-
-	( options, args ) = parser.parse_args()
-
-	url = "http://www.vegasinsider.com/nfl/odds/las-vegas/"
 	opener = urllib2.build_opener()
 	response = opener.open( url )
 
@@ -113,27 +127,50 @@ def main() :
 				cols = aRow.findAll( 'td' )
 
 				homeOdds = ""
+				visitorOdds = ""
 
 				try :
 					viOdds = cols[ 2 ].findChild( 'a' )
 					odssItems = viOdds.getText( "|" ).split( "|" )
 					awayOdds, homeOdds = fixOdds( odssItems[ 1 ], odssItems[ 2 ] )
+					visitorOdds = '-%s' % homeOdds
+					if homeOdds[ 0 ] == '-' :
+						visitorOdds = visitorOdds[ 2 : ]
 				except :
 					pass
 
-				print visitor, "@", home, homeOdds
-				oddsOut.append( "%s %s" % ( home, homeOdds ))
+				oddsOut.append(( visitor, visitorOdds, home, homeOdds ))
 
 
 		except Exception as ex :
 			print "We had an exception!", ex
 
-	print
-	print "Home odds"
-	print
-
 	for aRow in oddsOut :
-			print aRow
+		visitor, visitorOdds, home, homeOdds = aRow
+		if len( visitorOdds ) :
+			outs = ''
+			if options.fpOdds :
+				if visitorOdds[0] == '-' :
+					outs = '%s @ %s (+%s)' % ( visitor, home, homeOdds )
+				else :
+					outs = '%s (+%s) @ %s' % ( visitor, visitorOdds, home )
+			else :
+				outs = '%s @ %s %s' % ( visitor, home, homeOdds )
+			print outs
+		
+	if options.extendedOdds :
+		print
+		print 'Odds FP formatted...'
+		print
+
+		for aRow in oddsOut :
+			visitor, visitorOdds, home, homeOdds = aRow
+			if len( visitorOdds ) :
+				if visitorOdds[0] == '-' :
+					outs = '[*]%s @ [b]%s (+%s)[/b]' % ( visitor, home, homeOdds )
+				else :
+					outs = '[*][b]%s (+%s)[/b] @ %s' % ( visitor, visitorOdds, home )
+				print outs
 
 
 if __name__ == '__main__':
