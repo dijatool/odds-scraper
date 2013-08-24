@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from datetime import date
+from datetime import date, datetime
 import time
 
 
@@ -23,12 +23,22 @@ _thisMonth = None
 _thisYear = None
 
 
-def convertDateStr( dateStr ) :
+def convertDateStr( dateStr, divider='-' ) :
 	'''
 		convert from a simple string repr to a date object
 
 	'''
-	return date.fromtimestamp( time.mktime( time.strptime( dateStr, "%Y-%m-%d" )))
+	fmt='%s%s%s%s%s' % ( '%Y', divider, '%m', divider, '%d' )
+	return date.fromtimestamp( time.mktime( time.strptime( dateStr, fmt )))
+
+
+def convertDateTimeStr( dateStr ) :
+	'''
+		convertDateTimeStr needs a description...
+	
+	'''
+	fmt='%Y/%m/%d %I:%M %p'
+	return datetime.fromtimestamp( time.mktime( time.strptime( dateStr, fmt )) )
 
 
 def dateFromMoDay( month, day ) :

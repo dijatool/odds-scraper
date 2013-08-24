@@ -1,27 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from odds import teamsTranslate
-from misc import cleanText
 
 import string
 import urllib2
 
 from BeautifulSoup import BeautifulSoup as bs
 
-#
-# 	While debugging...
-#
-# 	python ~/github/local/odds-scraper/vi.py
-#
+from odds import teamsTranslate
+from misc import cleanText
 
+from datetools import convertDateTimeStr	#, convertDateStr
 
 #
-#	So the page is gzip'd, created a quick work around for it
-#
-#	FeedParser does this well
-#
-# 	git clone https://code.google.com/p/feedparser/
+#	The page is gzip'd, just a reminder
 #
 
 try:
@@ -35,10 +27,13 @@ except ImportError:
 
 def fixOddsStr( oddsStr ) :
 	'''
-		Replace instances of "&frac12;" with ".5" and trim any excess
+		Replace instances anything that causes issues...
+			"&frac12;" with ".5"
+			etc
 	'''
 	odds = string.replace( oddsStr, u'&frac12;', ".5" )
 	odds = string.replace( odds, u'½', ".5" )
+	odds = string.replace( odds, u'PK', "0" )
 	return odds.strip()
 
 
@@ -77,9 +72,145 @@ def doOptions() :
 						action="store_true",
 						help="Should we print FP formatted odds?" )
 
+	parser.add_option( "-u", "--url", dest="url", default = None,
+						help="Override for the url" )
+
 	( options, args ) = parser.parse_args()
 
+	if options.url :
+		url = options.url
+		print url
+
 	return options, url
+
+
+def getDateStr( dt ) :
+	'''
+		getDateStr needs a description...
+
+	'''
+	return dt.strftime( '%Y-%m-%d %H:%M' )
+
+
+def fixDate( dateIn ) :
+	'''
+		fixDate needs a description...
+
+		this hack is going to need fixing asap
+	'''
+	parts = dateIn.split( '  ' )
+	theDate, theTime = parts[ 0 ], parts[ 1 ]
+	parts[ 0 ] = '2013/%s' % theDate
+	dt = convertDateTimeStr( ' '.join( parts ))
+	return dt
+
+
+def dumpPage( page, options ) :
+	'''
+		Parse the page into the pieces we need.
+
+			td class="viBodyBorderNorm"
+			find the second table...
+				find all the tr's
+
+	'''
+	soup = bs( page )
+
+	mainTable = soup.findChild( 'td', { "class" : "viBodyBorderNorm" })
+	tables = mainTable.findAll( 'table' )
+
+	oddsTable = tables[ 1 ]
+
+	rows = oddsTable.findAll( 'tr' )
+
+	oddsOut = []
+
+	for aRow in rows :
+		try :
+			dates = aRow.findChildren( 'span', { 'class' : 'cellTextHot' })
+			teams = aRow.findChildren( 'a', { "class" : "tabletext" })
+			if None != teams and len( teams )  > 0 :
+
+				gamedate = fixDate( dates[ 0 ].getText())
+
+				visitor = teams[ 0 ].getText( " " )
+				home = teams[ 1 ].getText( " " )
+				( visitor, home ) = teamsTranslate( visitor, home )
+
+				# find the proper column
+				cols = aRow.findAll( 'td' )
+
+				homeOdds = ""
+				visitorOdds = ""
+
+				try :
+					viOdds = cols[ 2 ].findChild( 'a' )
+					odssItems = viOdds.getText( "|" ).split( "|" )
+					awayOdds, homeOdds = fixOdds( odssItems[ 1 ], odssItems[ 2 ] )
+					visitorOdds = '-%s' % homeOdds
+					if homeOdds[ 0 ] == '-' :
+						visitorOdds = visitorOdds[ 2 : ]
+				except :
+					pass
+
+				oddsOut.append(( gamedate, visitor, visitorOdds, home, homeOdds ))
+
+
+		except Exception as ex :
+			print "We had an exception!", ex
+
+	lastDay = -1
+	for aRow in oddsOut :
+		gamedate, visitor, visitorOdds, home, homeOdds = aRow
+		if gamedate.day != lastDay :
+			print
+			lastDay = gamedate.day
+		dateStr = getDateStr( gamedate )
+		if len( visitorOdds ) :
+			outs = ''
+			if options.fpOdds :
+				if visitorOdds[0] == '-' :
+					outs = '%s  %s @ %s (+%s)' % ( dateStr, visitor, home, homeOdds )
+				else :
+					outs = '%s  %s (+%s) @ %s' % ( dateStr, visitor, visitorOdds, home )
+			else :
+				outs = '%s  %s @ %s %s' % ( dateStr, visitor, home, homeOdds )
+			print outs
+
+	if options.extendedOdds :
+		print
+		print 'Odds FP formatted...'
+
+		lastDay = -1
+
+		for aRow in oddsOut :
+			gamedate, visitor, visitorOdds, home, homeOdds = aRow
+			if gamedate.day != lastDay :
+				print
+				lastDay = gamedate.day
+				print gamedate.strftime( '%a %b %d' )
+				print
+
+			if len( visitorOdds ) :
+				pre = '   '
+				try :
+					val = float( homeOdds )
+					if val < 0 :
+						val = val * -1
+					#print val
+					if val < 3 :
+						pre = 'XXX'
+				except :
+					pass
+
+				if visitorOdds[0] == '-' :
+					outs = '[*]%s @ [b]%s (+%s)[/b]' % ( visitor, home, homeOdds )
+				else :
+					outs = '[*][b]%s (+%s)[/b] @ %s' % ( visitor, visitorOdds, home )
+				print pre, outs
+
+		print
+		print '   ', '[*]No Game Qualifies'
 
 
 def main() :
@@ -104,84 +235,8 @@ def main() :
 		page = f.read()
 	else :
 		page = response.read()
-	soup = bs( page )
 
-	mainTable = soup.findChild( 'td', { "class" : "viBodyBorderNorm" })
-	tables = mainTable.findAll( 'table' )
-
-	oddsTable = tables[ 1 ]
-
-	rows = oddsTable.findAll( 'tr' )
-
-	oddsOut = []
-
-	for aRow in rows :
-		try :
-			teams = aRow.findChildren( 'a', { "class" : "tabletext" })
-			if None != teams and len( teams )  > 0 :
-				visitor = teams[ 0 ].getText( " " )
-				home = teams[ 1 ].getText( " " )
-				( visitor, home ) = teamsTranslate( visitor, home )
-
-				# find the proper column
-				cols = aRow.findAll( 'td' )
-
-				homeOdds = ""
-				visitorOdds = ""
-
-				try :
-					viOdds = cols[ 2 ].findChild( 'a' )
-					odssItems = viOdds.getText( "|" ).split( "|" )
-					awayOdds, homeOdds = fixOdds( odssItems[ 1 ], odssItems[ 2 ] )
-					visitorOdds = '-%s' % homeOdds
-					if homeOdds[ 0 ] == '-' :
-						visitorOdds = visitorOdds[ 2 : ]
-				except :
-					pass
-
-				oddsOut.append(( visitor, visitorOdds, home, homeOdds ))
-
-
-		except Exception as ex :
-			print "We had an exception!", ex
-
-	for aRow in oddsOut :
-		visitor, visitorOdds, home, homeOdds = aRow
-		if len( visitorOdds ) :
-			outs = ''
-			if options.fpOdds :
-				if visitorOdds[0] == '-' :
-					outs = '%s @ %s (+%s)' % ( visitor, home, homeOdds )
-				else :
-					outs = '%s (+%s) @ %s' % ( visitor, visitorOdds, home )
-			else :
-				outs = '%s @ %s %s' % ( visitor, home, homeOdds )
-			print outs
-		
-	if options.extendedOdds :
-		print
-		print 'Odds FP formatted...'
-		print
-
-		for aRow in oddsOut :
-			visitor, visitorOdds, home, homeOdds = aRow
-			if len( visitorOdds ) :
-				pre = '   '
-				try :
-					val = float( homeOdds )
-					if val < 0 :
-						val = val * -1
-					#print val
-					if val < 3 :
-						pre = 'XXX'
-				except :
-					pass
-
-				if visitorOdds[0] == '-' :
-					outs = '[*]%s @ [b]%s (+%s)[/b]' % ( visitor, home, homeOdds )
-				else :
-					outs = '[*][b]%s (+%s)[/b] @ %s' % ( visitor, visitorOdds, home )
-				print pre, outs
+	dumpPage( page, options )
 
 
 if __name__ == '__main__':
