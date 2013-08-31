@@ -192,14 +192,14 @@ def dumpPage( page, options ) :
 				print
 
 			if len( visitorOdds ) :
-				pre = '   '
+				post = ''
 				try :
 					val = float( homeOdds )
 					if val < 0 :
 						val = val * -1
 					#print val
 					if val < 3 :
-						pre = 'XXX'
+						post = ' XXX'
 				except :
 					pass
 
@@ -207,10 +207,14 @@ def dumpPage( page, options ) :
 					outs = '[*]%s @ [b]%s (+%s)[/b]' % ( visitor, home, homeOdds )
 				else :
 					outs = '[*][b]%s (+%s)[/b] @ %s' % ( visitor, visitorOdds, home )
-				print pre, outs
+				if len( post ) :
+					outs = '%s%s' % ( outs, post )
+				print outs
 
 		print
-		print '   ', '[*]No Game Qualifies'
+		print 'Here for editing purposes only...'
+		print
+		print '[*]No Game Qualifies'
 
 
 def main() :

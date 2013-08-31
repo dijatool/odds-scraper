@@ -36,6 +36,8 @@ def download( url ) :
 	print
 	print title
 	print
+	print url
+	print
 
 	# grab the text and print all the paragraphs
 	text = soup.findChild( None, { 'id' : 'article_story_body', 'class' : 'article story' })

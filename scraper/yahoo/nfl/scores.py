@@ -54,12 +54,14 @@ def printScores( away, home, scoresArray, description, skipFuture, skipFinished 
 		Print the data from the game
 
 	'''
+	print 'Entering'	# debug
 	doPrint = True
 	if skipFinished :
 		if isFinal( scoresArray ) :
 			doPrint = False
 
 	if doPrint :
+		print 'doPrint!'	# debug
 		( away, home ) = teamsTranslate( away, home )
 		if isFuture( scoresArray ) :
 			if False == skipFuture :
@@ -92,14 +94,21 @@ def download( url, skipFuture=True, skipFinished=True ) :
 	page = link.read()
 	soup = bs( page )
 
+	print 'Soup!'	# debug
 
 	scores = soup.findChildren( 'table', { "class" : "scores" } )
 
+	print 'scores!'	# debug
+	
 	for i, aSection in enumerate( scores ) :
+	
+		print aSection
+	
 		scoresArray = []
 		away = ""
 		home = ""
 		teams = aSection.findChildren( None, { "class" : "yspscores team" } )
+		
 		for i, aTeam in enumerate( teams ) :
 			name = aTeam.findChild( 'a' )
 			if 0 == i :
@@ -119,5 +128,6 @@ def download( url, skipFuture=True, skipFinished=True ) :
 			description = cleanText( desc.getText( " " ))
 
 		printScores( away, home, scoresArray, description, skipFuture, skipFinished )
+		
 
 
