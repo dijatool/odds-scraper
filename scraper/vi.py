@@ -71,6 +71,9 @@ def doOptions() :
 	parser.add_option( "-f", "--fp", dest="fpOdds", default = False,
 						action="store_true",
 						help="Should we print FP formatted odds?" )
+	parser.add_option( "-d", "--dogs", dest="dogs", default = False,
+						action="store_true",
+						help="Should we dump the underdogs?" )
 
 	parser.add_option( "-u", "--url", dest="url", default = None,
 						help="Override for the url" )
@@ -215,6 +218,25 @@ def dumpPage( page, options ) :
 		print 'Here for editing purposes only...'
 		print
 		print '[*]No Game Qualifies'
+		print
+
+	if options.dogs :
+		print
+		print 'Information for the sheet'
+		print
+
+		for aRow in oddsOut :
+			gamedate, visitor, visitorOdds, home, homeOdds = aRow
+			dog = None
+			dogOdds = None
+			val = float( homeOdds )
+			if val <= 0 :
+				dog, dogOdds = visitor, visitorOdds
+			else :
+				dog, dogOdds = home, homeOdds
+			if dogOdds[ 0 ] == '-' :
+				dogOdds = dogOdds[ 1 : ]
+			print dog, dogOdds
 
 
 def main() :
