@@ -38,15 +38,13 @@ def download( url ) :
 	print url
 	print
 
-	# grab the text and print all the paragraphs
-# 	items = soup.findChildren( None, { 'class' : 'articleBody' })
-# 
-# 	for anItem in items :
-# 		paras = anItem.findAll()
-# 		for p in paras :
-# 			if 'p' == p.name[0] or 'h' == p.name[0] :
-# 				print cleanText( p.getText( " " ))
-# 				print
+	author = soup.findChildren( None, { 'class' : 'byline' })
+	if author is not None :
+		print cleanText( author[ 0 ].getText( " " ))
+	date = soup.findChildren( None, { 'class' : 'dateline' })
+	if date is not None :
+		print cleanText( date[ 0 ].getText( " " ))
+	print
 
 	# should find a better starting point... past the end of the first group of items...
 	moreItems = soup.findChildren( None, { 'itemprop' : 'articleBody' })
