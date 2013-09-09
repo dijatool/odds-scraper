@@ -74,6 +74,9 @@ def doOptions() :
 	parser.add_option( "-d", "--dogs", dest="dogs", default = False,
 						action="store_true",
 						help="Should we dump the underdogs?" )
+	parser.add_option( "-o", "--home", dest="home", default = False,
+						action="store_true",
+						help="Should we dump the home odds?" )
 
 	parser.add_option( "-u", "--url", dest="url", default = None,
 						help="Override for the url" )
@@ -177,7 +180,10 @@ def dumpPage( page, options ) :
 				else :
 					outs = '%s  %s (+%s) @ %s' % ( dateStr, visitor, visitorOdds, home )
 			else :
-				outs = '%s  %s @ %s %s' % ( dateStr, visitor, home, homeOdds )
+				if visitorOdds[ 0 ] == '-' :
+					outs = '%s  %s (%s) @ %s' % ( dateStr, visitor, visitorOdds, home )
+				else :
+					outs = '%s  %s @ %s (%s)' % ( dateStr, visitor, home, homeOdds )
 			print outs
 
 	if options.extendedOdds :
@@ -237,6 +243,17 @@ def dumpPage( page, options ) :
 			if dogOdds[ 0 ] == '-' :
 				dogOdds = dogOdds[ 1 : ]
 			print dog, dogOdds
+
+
+	if options.home :
+		print
+		print 'Home odds'
+		print
+
+		for aRow in oddsOut :
+			gamedate, visitor, visitorOdds, home, homeOdds = aRow
+			print home, homeOdds
+
 
 
 def main() :
