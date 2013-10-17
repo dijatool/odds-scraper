@@ -67,6 +67,11 @@ def download( url ) :
 		if 'p' == p.name[0] or 'h' == p.name[0] :
 			print cleanText( p.getText( " " ))
 			print
+		elif 'td' ==  p.name :
+			txt = cleanText( p.getText( " " ))
+			if len( txt ) > 1 :
+				print txt
+				print
 		li = p.findChildren( 'li' )
 		if None != li :
 			for anItem in li :
