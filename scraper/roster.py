@@ -22,6 +22,39 @@ from BeautifulSoup import BeautifulSoup as bs
 _baseUrl = "none"
 _loopRegEx = re.compile( ' loop-' )		# each row has the class tag ' loop-*'
 
+_statusMap = {
+	"Active" : 'ACT',
+	"Reserve/Injured" : 'IR',
+	"Practice Squad/Injured" : 'IR',
+	"Reserve/Non-Football Illness" : 'IR',
+	"Practice Squad" : 'PS',
+	"Reserve/Designated to Return" : 'IRDR',
+	"Reserve/Injured; Designated for Return" : 'IRDR',
+	"Active/Physically Unable to Perform" : 'PUP',
+	"Reserve/Physically Unable to Perform" : 'PUP',
+	"Reserve/Non-Football Injury" : 'NFI',
+	"Reserve/Suspended by Commissioner" : 'SUS',
+	"Reserve/Left Squad" : 	'LS',
+	}
+
+
+_status = 'ACT'
+
+# field names we're accumulating
+_names = [
+	u'last',
+	u'first',
+	u'age',
+	u'exp',
+	u'number',
+	u'position',
+	u'height',
+	u'weight',
+	u'college',
+	u'link',
+	u'status',
+	]
+
 
 def cleanMsg( obj ) :
 	'''
@@ -41,10 +74,6 @@ def loadPage( url ) :
 	soup = bs( page )
 
 	return soup
-
-
-#_names = [ u'last', u'first', u'number', u'position', u'height', u'weight', u'college', u'link', ]
-_names = [ u'last', u'first', u'age', u'exp', u'number', u'position', u'height', u'weight', u'college', u'link', ]
 
 
 def toCsvRow( writer, buffer, rowData ) :
@@ -90,6 +119,17 @@ def getData( row, destDict, destName, srcName ) :
 	destDict[ destName ] = data
 
 
+def getStatus( row, destDict, destName, srcName ) :
+	'''
+		Get the status stashed in a global...
+
+		Not ideal but it works for this approach
+
+	'''
+	global _status
+	destDict[ destName ] = unicode( _status )
+
+
 def getHeight( row, destDict, destName, srcName ) :
 	'''
 		Get height in inches...
@@ -116,6 +156,7 @@ _builder = {	# we handle the names when we do the link
 				u'height'	: [ getHeight, 'col-height' ],
 				u'weight'	: [ getData, 'col-weight' ],
 				u'college'	: [ getData, 'col-college' ],
+				u'status'	: [ getStatus, 'None' ],
 				}
 
 
@@ -183,6 +224,15 @@ def download( url, options ) :
 		for aSection in sections :
 			if not options.csv :
 				print cleanMsg( aSection )
+			else :
+				# stash the status somewhere and add it to every player
+				status = cleanMsg( aSection )
+				if status in _statusMap :
+					global _status
+					_status = _statusMap[ status ]
+				else :
+					print 'Unknown status: ', status
+
 			# now get at the table stuff just below each section...
 			aTable = aSection.findNextSibling( 'table' )
 			playerData( aTable, playerList, options )
