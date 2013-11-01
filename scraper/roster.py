@@ -24,6 +24,7 @@ _loopRegEx = re.compile( ' loop-' )		# each row has the class tag ' loop-*'
 
 _statusMap = {
 	"Active" : 'ACT',
+	"Inactive" : 'ACT',			# this is for the Bengals and anyone else that does this!	TODO take advantage of this somewhere down the line
 	"Reserve/Injured" : 'IR',
 	"Practice Squad/Injured" : 'IR',
 	"Reserve/Non-Football Illness" : 'IR',
@@ -34,6 +35,7 @@ _statusMap = {
 	"Reserve/Physically Unable to Perform" : 'PUP',
 	"Reserve/Non-Football Injury" : 'NFI',
 	"Reserve/Suspended by Commissioner" : 'SUS',
+	"Reserve/Retired" : 'RET',
 	"Reserve/Left Squad" : 	'LS',
 	}
 
@@ -232,6 +234,7 @@ def download( url, options ) :
 					_status = _statusMap[ status ]
 				else :
 					print 'Unknown status: ', status
+					_status = 'ACT'
 
 			# now get at the table stuff just below each section...
 			aTable = aSection.findNextSibling( 'table' )
