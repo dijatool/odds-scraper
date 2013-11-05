@@ -34,6 +34,7 @@ _statusMap = {
 	"Active/Physically Unable to Perform" : 'PUP',
 	"Reserve/Physically Unable to Perform" : 'PUP',
 	"Reserve/Non-Football Injury" : 'NFI',
+	"Reserve/Suspended by Club" : 'SUC',
 	"Reserve/Suspended by Commissioner" : 'SUS',
 	"Reserve/Retired" : 'RET',
 	"Reserve/Left Squad" : 	'LS',

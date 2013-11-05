@@ -129,8 +129,8 @@ def main() :
 	urls = {
 			#'file:///tmp/pack/index.html' : [ 'all_team_stats', 'all_passing', 'all_rushing', 'all_returns', 'all_scoring' ],
 			#'file:///tmp/pack/opp.htm' : [ 'all_team_stats', 'all_passing', 'all_rushing', 'all_scoring' ],
-			'http://www.pro-football-reference.com/years/2012/' : [ 'all_team_stats', 'all_passing', 'all_rushing', 'all_scoring' ],
-			'http://www.pro-football-reference.com/years/2012/opp.htm' : [ 'all_team_stats', 'all_passing', 'all_rushing', 'all_scoring' ],
+			'http://www.pro-football-reference.com/years/2013/' : [ 'all_team_stats', 'all_passing', 'all_rushing', 'all_scoring' ],
+			'http://www.pro-football-reference.com/years/2013/opp.htm' : [ 'all_team_stats', 'all_passing', 'all_rushing', 'all_scoring' ],
 			}
 
 	for url in urls :
