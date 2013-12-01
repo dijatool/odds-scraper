@@ -27,12 +27,12 @@ _statusMap = {
 	"Inactive" : 'ACT',			# this is for the Bengals and anyone else that does this!	TODO take advantage of this somewhere down the line
 	"Reserve/Injured" : 'IR',
 	"Practice Squad/Injured" : 'IR',
-	"Reserve/Non-Football Illness" : 'IR',
 	"Practice Squad" : 'PS',
 	"Reserve/Designated to Return" : 'IRDR',
 	"Reserve/Injured; Designated for Return" : 'IRDR',
 	"Active/Physically Unable to Perform" : 'PUP',
 	"Reserve/Physically Unable to Perform" : 'PUP',
+	"Reserve/Non-Football Illness" : 'NFI',
 	"Reserve/Non-Football Injury" : 'NFI',
 	"Reserve/Suspended by Club" : 'SUC',
 	"Reserve/Suspended by Commissioner" : 'SUS',
