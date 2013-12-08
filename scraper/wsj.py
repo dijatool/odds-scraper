@@ -20,6 +20,8 @@ def download( url ) :
 	'''
 		Pull the page and parse it into the pieces we need.
 	'''
+	import re
+	
 	cookieJar = cookielib.LWPCookieJar()
 	if os.path.isfile( kCookieFile ) :
 		cookieJar.load( kCookieFile )
@@ -39,14 +41,23 @@ def download( url ) :
 	print url
 	print
 
+	#print soup
+	
 	# grab the text and print all the paragraphs
 	text = soup.findChild( None, { 'id' : 'article_story_body', 'class' : 'article story' })
+	if None is text :
+		text = soup.findChild( 'div', { 'data-module-name' : 'resp.module.article.articleBody' })
 
 	paras = text.findAll()
 	for p in paras :
 		if 'p' == p.name[0] or 'h' == p.name[0] :
-			print cleanText( p.getText( " " ))
-			print
+			outText = cleanText( p.getText( " " ))
+			outText = outText.lstrip().rstrip()
+			outText = re.sub( r'[\n]+', r' ', outText )
+			outText = re.sub( r' [\s]+', r' ', outText )
+			if len( outText ) > 0 :
+				print outText
+				print
 
 #	cookieJar.save( kCookieFile )
 
