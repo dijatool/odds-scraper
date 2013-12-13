@@ -104,12 +104,20 @@ def getLink( row, destDict, destName, srcName ) :
 	'''
 	name = row.findChild( 'td', { "class" : "col-name" })
 	names = cleanMsg( name ).split( ',' )
+
+	# sometimes extra commas show up outta nowhere!
+	# eat them until only two name chunks remain
+	while len( names ) > 2 :
+		names[ 0 ] = '%s,%s' % ( names[ 0 ], names[ 1 ] )
+		del names[ 1 ]
+
 	first = names[ 1 ].rstrip().lstrip()
 	destDict[ u'first' ] = first
 	last = names[ 0 ]
 	destDict[ u'last' ] = last
 	link = name.findChild( 'a' )
 	linkUrl = u"%s%s" % ( _baseUrl, link[ 'href' ] )
+	linkUrl = linkUrl.replace( ' ', '%20' )
 	destDict[ destName ] = linkUrl
 
 
