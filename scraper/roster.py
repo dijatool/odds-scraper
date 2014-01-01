@@ -38,6 +38,8 @@ _statusMap = {
 	"Reserve/Suspended by Commissioner" : 'SUS',
 	"Reserve/Retired" : 'RET',
 	"Reserve/Left Squad" : 	'LS',
+	"Reserve/Future" : 'FUT',
+	"RESERVE/FUTURE" : 'FUT',
 	}
 
 
