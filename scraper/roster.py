@@ -132,6 +132,16 @@ def getData( row, destDict, destName, srcName ) :
 	destDict[ destName ] = data
 
 
+def resetStatus() :
+	'''
+		resetStatus needs a description...
+	
+	'''
+	global _status
+	_status = 'ACT'
+
+
+
 def getStatus( row, destDict, destName, srcName ) :
 	'''
 		Get the status stashed in a global...
@@ -232,6 +242,8 @@ def download( url, options ) :
 
 	# find the sections...
 	sections = mainBodyObj.findAll( None, { "class" : "mod-title-nobackground" })
+
+	resetStatus()
 
 	if len( sections ) > 1 :
 		for aSection in sections :
