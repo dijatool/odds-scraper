@@ -428,7 +428,7 @@ def openingOdds( soup ) :
 
 	'''
 	oddsList = []
-	oddsContainer = soup.findChild( None, { "class" : "odds-tables-container" })
+	oddsContainer = soup.findChild( None, { "class" : "content" })
 	oddsRows = oddsContainer.findAll( None, { "class" : "oddsshark-odds-table allodds-odds" })
 	for i, game in enumerate( oddsRows ) :
 		try :

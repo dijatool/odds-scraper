@@ -40,7 +40,10 @@ def download( url ) :
 
 	author = soup.findChildren( None, { 'class' : 'byline' })
 	if author is not None :
-		print cleanText( author[ 0 ].getText( " " ))
+		try :
+			print cleanText( author[ 0 ].getText( " " ))
+		except :
+			pass
 	date = soup.findChildren( None, { 'class' : 'dateline' })
 	if date is not None :
 		print cleanText( date[ 0 ].getText( " " ))
