@@ -32,6 +32,8 @@ _statusMap = {
 	"Reserve/Injured; Designated for Return" : 'IRDR',
 	"Active/Physically Unable to Perform" : 'PUP',
 	"Reserve/Physically Unable to Perform" : 'PUP',
+	"Active/Non-Football Illness" : 'NFI',
+	"Active/Non-Football Injury" : 'NFI',
 	"Reserve/Non-Football Illness" : 'NFI',
 	"Reserve/Non-Football Injury" : 'NFI',
 	"Reserve/Suspended by Club" : 'SUC',
@@ -40,6 +42,7 @@ _statusMap = {
 	"Reserve/Left Squad" : 	'LS',
 	"Reserve/Future" : 'FUT',
 	"RESERVE/FUTURE" : 'FUT',
+	"Waivers/No Recall" : 'WAV',		# a new wrinkle by the Chiefs...
 	}
 
 
