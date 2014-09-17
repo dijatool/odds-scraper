@@ -39,10 +39,14 @@ _statusMap = {
 	"Reserve/Suspended by Club" : 'SUC',
 	"Reserve/Suspended by Commissioner" : 'SUS',
 	"Reserve/Retired" : 'RET',
-	"Reserve/Left Squad" : 	'LS',
+	"Reserve/Left Squad" : 'LS',
+	"Reserve/Did Not Report" : 'DNR',
 	"Reserve/Future" : 'FUT',
 	"RESERVE/FUTURE" : 'FUT',
 	"Waivers/No Recall" : 'WAV',		# a new wrinkle by the Chiefs...
+	"Cut" : 'WAV',						# a new wrinkle by the Chiefs...
+	# there will likely be other variants too...
+	"Exempt" : 'ECP',					# Exempt Commissioner Permission
 	}
 
 
