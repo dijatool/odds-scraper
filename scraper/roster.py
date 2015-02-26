@@ -67,12 +67,18 @@ _names = [
 	u'status',
 	]
 
+_namesAdd = [
+	u'image',
+	]
+
+_namesV2 = _names + _namesAdd
+
 
 def cleanMsg( obj ) :
 	'''
 		Take the object and strip everything to make it clean text
 	'''
-	return ''.join( bs( str( obj )).findAll( text=True )).strip()
+	return ''.join( bs( str( obj )).findAll( text = True )).strip()
 
 
 def loadPage( url ) :
@@ -114,7 +120,7 @@ def getLink( row, destDict, destName, srcName ) :
 	name = row.findChild( 'td', { "class" : "col-name" })
 	names = cleanMsg( name ).split( ',' )
 
-	# sometimes extra commas show up outta nowhere!
+	# sometimes extra commas show up (Jr's and so forth or just bad data)
 	# eat them until only two name chunks remain
 	while len( names ) > 2 :
 		names[ 0 ] = '%s,%s' % ( names[ 0 ], names[ 1 ] )
@@ -142,11 +148,10 @@ def getData( row, destDict, destName, srcName ) :
 def resetStatus() :
 	'''
 		resetStatus needs a description...
-	
+
 	'''
 	global _status
 	_status = 'ACT'
-
 
 
 def getStatus( row, destDict, destName, srcName ) :
@@ -166,15 +171,74 @@ def getHeight( row, destDict, destName, srcName ) :
 
 	'''
 	data = cleanMsg( row.findChild( 'td', { "class" : srcName }))
-	data = data.replace( '"', '' )
-	data = data.replace( "'", '-' )
-	hInfo = data.split( '-' )
-	height = data
-	try :
+	data = heightFix( data )
+	if None is data :
+		data = u''
+
+	destDict[ destName ] = data
+
+
+def nameFix( destDict, sourceName ) :
+	'''
+		Clean up the name data and stick it into first and last
+
+	'''
+	names = sourceName.split( ',' )
+
+	# sometimes extra commas show up (Jr's and so forth or just bad data)
+	# eat them until only two name chunks remain
+	while len( names ) > 2 :
+		names[ 0 ] = '%s,%s' % ( names[ 0 ], names[ 1 ] )
+		del names[ 1 ]
+
+	first = names[ 1 ].rstrip().lstrip()
+	destDict[ u'first' ] = first
+	last = names[ 0 ].rstrip().lstrip()
+	destDict[ u'last' ] = last
+
+
+def heightFix( strHeight ) :
+	'''
+		Some teams just can't get the basics right ....
+
+			like 6'2 instead of 6-2
+
+		Must be cleaned up to move to an integer representation
+
+	'''
+	strHeight = strHeight.replace( '"', '' )
+	# call it the cowboys rule ... jesus
+	strHeight = strHeight.replace( ' ', '' )
+	if strHeight.find( "'" ) > 0 :
+		strHeight = strHeight.replace( "'", '-' )
+
+	if strHeight.find( "-" ) > 0 :
+		hInfo = strHeight.split( '-' )
 		height = 12 * int( hInfo[ 0 ] ) + int( hInfo[ 1 ] )
+		strHeight = unicode( height )
+
+	try :
+		intHeight = int( strHeight )
 	except :
-		pass
-	destDict[ destName ] = unicode( height )
+		intHeight = 0
+
+	if intHeight < 48 :
+		strHeight = None
+
+	return strHeight
+
+
+def updateStatus( status ) :
+	'''
+		Update the global _status (it's dumb but simple)
+
+	'''
+	if status in _statusMap :
+		global _status
+		_status = _statusMap[ status ]
+	else :
+		print 'Unknown status: ', status
+		_status = 'ACT'
 
 
 _builder = {	# we handle the names when we do the link
@@ -188,6 +252,9 @@ _builder = {	# we handle the names when we do the link
 				u'college'	: [ getData, 'col-college' ],
 				u'status'	: [ getStatus, 'None' ],
 				}
+
+
+# no buildr yet for the Cowboys style page ... not sure if we're doing it
 
 
 def playerData( tableSoup, playerList, options ) :
@@ -234,60 +301,157 @@ def download( url, options ) :
 	import urlparse
 	from operator import itemgetter
 
+	def _v2OutputName( options ) :
+		'''
+			adjust the output name when doing a V2 kind of record
+
+		'''
+		import re
+		ending = re.compile( r'.csv$' )
+		if ending.search( options.csvFile ) :
+			options.csvFile = ending.sub( '-v2.csv', options.csvFile )
+		else :
+			options.csvFile = '%s-v2.csv' % options.csvFile
+
+
 	global _baseUrl
 	parseUrl = urlparse.urlparse( url )
 	_baseUrl = '%s://%s' % ( parseUrl.scheme, parseUrl.netloc )
 
 	playerList = []
+	resetStatus()		# this is pretty bogus
 
 	strBuffer = StringIO.StringIO()
-	writer = unicodecsv.writer( strBuffer, quoting=unicodecsv.QUOTE_ALL )
-	dictWriter = unicodecsv.DictWriter( strBuffer, _names, quoting=unicodecsv.QUOTE_ALL )
+	writer = unicodecsv.writer( strBuffer, quoting = unicodecsv.QUOTE_ALL )
+	dictWriter = unicodecsv.DictWriter( strBuffer, _names, quoting = unicodecsv.QUOTE_ALL )
 
 	soup = loadPage( url )
-	mainBodyObj = soup.findChild( None, { "class" : "game-roster-large" }).findChild( None, { "class" : "bd" })
+	try :
+		mainBodyObj = soup.findChild( None, { "class" : "game-roster-large" }).findChild( None, { "class" : "bd" })
 
-	# find the sections...
-	sections = mainBodyObj.findAll( None, { "class" : "mod-title-nobackground" })
+		# find the sections...
+		sections = mainBodyObj.findAll( None, { "class" : "mod-title-nobackground" })
 
-	resetStatus()
-
-	if len( sections ) > 1 :
-		for aSection in sections :
-			if not options.csv :
-				print cleanMsg( aSection )
-			else :
-				# stash the status somewhere and add it to every player
-				status = cleanMsg( aSection )
-				if status in _statusMap :
-					global _status
-					_status = _statusMap[ status ]
+		if len( sections ) > 1 :
+			for aSection in sections :
+				if not options.csv :
+					print cleanMsg( aSection )
 				else :
-					print 'Unknown status: ', status
-					_status = 'ACT'
+					# stash the status somewhere and add it to every player
+					updateStatus( cleanMsg( aSection ))
 
-			# now get at the table stuff just below each section...
-			aTable = aSection.findNextSibling( 'table' )
-			playerData( aTable, playerList, options )
-	else :
-		# miami and the bucs do things differently
-		aTable = mainBodyObj.findChild( 'table' )
-		playerData( aTable, playerList, options )
-
-	if options.csv :
-		playerList.sort( key=itemgetter( 'last','first' ))
-		if options.outputToFile :
-			myfile = open( options.csvFile, mode='w' )
-			fileWriter = unicodecsv.DictWriter( myfile, _names, quoting=unicodecsv.QUOTE_ALL )
-			fileWriter.writeheader()
-			for aPlayer in playerList :
-				fileWriter.writerow( aPlayer )
-			myfile.close()
-
+				# now get at the table stuff just below each section...
+				aTable = aSection.findNextSibling( 'table' )
+				playerData( aTable, playerList, options )
 		else :
-			print toCsvRow( writer, strBuffer, _names )
-			for aPlayer in playerList :
-				print toCsvRow( dictWriter, strBuffer, aPlayer )
+			# miami and the bucs do things differently
+			aTable = mainBodyObj.findChild( 'table' )
+			playerData( aTable, playerList, options )
+
+		if options.csv :
+			playerList.sort( key = itemgetter( 'last', 'first' ))
+			if options.outputToFile :
+				myfile = open( options.csvFile, mode = 'w' )
+				fileWriter = unicodecsv.DictWriter( myfile, _names, quoting = unicodecsv.QUOTE_ALL )
+				fileWriter.writeheader()
+				for aPlayer in playerList :
+					fileWriter.writerow( aPlayer )
+				myfile.close()
+
+			else :
+				print toCsvRow( writer, strBuffer, _names )
+				for aPlayer in playerList :
+					print toCsvRow( dictWriter, strBuffer, aPlayer )
+
+	except :
+		# teams are moving to a new format ...
+		# should try a second approach with the data
+
+		# the section titles live at field--name-field-roster-status (inside h2 class pane-title)
+		# the data lives inside each <tbody>
+		# now moved to just before the table itself
+
+		import re
+
+		topSearch = re.compile( r'\b%s\b' % 'view-player-roster' )
+		rosterWrapper = soup.findChild( 'div', { 'class' : topSearch })
+
+		#doIt = False
+		## DEBUG ##
+		doIt = True
+
+		if doIt :
+			tabs = rosterWrapper.findChildren( 'table' )
+			for aTab in tabs :
+				#caption = aTab.findChild( 'caption' )
+				caption = aTab.findPreviousSibling( 'h2', { 'class' : 'pane-title' })
+				caption = cleanMsg( caption )
+				updateStatus( caption )
+
+				body = aTab.findChild( 'tbody' )
+				rows = body.findChildren( 'tr' )
+				for aRow in rows :
+
+					def _grabData( destDict, tagObj, fieldName, dest ) :
+						'''
+							Gather data from inside various field names ...
+							it is very repetitive
+
+							# <div class=" ... field--name-field-XXXXXXXX ...." ... >
+
+						'''
+						srch = re.compile( r'\bfield--name-field-%s\b' % fieldName )
+						data = tagObj.findChild( 'div', { 'class' : srch })
+						destDict[ dest ] = cleanMsg( data )
+
+					player = {}
+
+					searchPlayerData = re.compile( r'\b%s\b' % 'field--name-field-player' )
+					data = aRow.findChild( 'div', { 'class' : searchPlayerData })
+					dataLink = data.findChild( 'a' )
+					player[ 'link' ] = _baseUrl + dataLink[ 'href' ]
+					player[ 'image' ] = dataLink[ 'data-player-image' ]
+					nameFix( player, cleanMsg( data ))
+
+					if player[ 'first' ] != '' and player[ 'last' ] != '' :
+						_grabData( player, aRow, 'position', 'position' )
+						_grabData( player, aRow, 'height', 'height' )
+						player[ 'height' ] = heightFix( player[ 'height' ] )
+						_grabData( player, aRow, 'weight', 'weight' )
+						_grabData( player, aRow, 'birthday', 'age' )
+						_grabData( player, aRow, 'experience', 'exp' )
+						_grabData( player, aRow, 'jersey-number', 'number' )
+						_grabData( player, aRow, 'college', 'college' )
+						getStatus( aRow, player, 'status', None )
+
+						playerList.append( player )
+
+			playerList.sort( key = itemgetter( 'last', 'first' ))
+
+			dictWriter = unicodecsv.DictWriter( strBuffer, _namesV2, quoting = unicodecsv.QUOTE_ALL )
+			if options.csv :
+				playerList.sort( key = itemgetter( 'last', 'first' ))
+				if options.outputToFile :
+					_v2OutputName( options )
+					myfile = open( options.csvFile, mode = 'w' )
+					fileWriter = unicodecsv.DictWriter( myfile, _namesV2, quoting = unicodecsv.QUOTE_ALL )
+					fileWriter.writeheader()
+					for aPlayer in playerList :
+						fileWriter.writerow( aPlayer )
+					myfile.close()
+			else :
+				print toCsvRow( writer, strBuffer, _namesV2 )
+				for player in playerList :
+					print toCsvRow( dictWriter, strBuffer, player )
+
+		## DEBUG ##
+		##
+		## need to find a way to fold the two together
+		## the sticking point is the name list passed to the CSV methods
+		##
+		## DEBUG ##
+
+		pass
 
 
 def doOptions() :

@@ -255,7 +255,6 @@ def dumpPage( page, options ) :
 			print home, homeOdds
 
 
-
 def main() :
 	'''
 		Pull the page and parse it into the pieces we need.
